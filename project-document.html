@@ -1,0 +1,503 @@
+<!doctype html>
+<!--
+  Centsible Project Document — living document
+  HOW TO UPDATE:
+    1. Change the "Last updated" date in the header.
+    2. Change status badges: <span class="status todo|doing|done|draft">…</span>
+    3. Add a row to the Change Log at the bottom describing what changed.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Centsible Project Document</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f7f6f1; --surface: #ffffff; --ink: #1c2a24; --muted: #5d6b64; --line: #e2e0d6;
+    --accent: #1f7a4d; --accent-soft: #e3f1e8; --gold: #9a6f14; --gold-soft: #f8efd9;
+    --blue: #2b5fa8; --blue-soft: #e4ecf7; --gray-soft: #eeede7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121815; --surface: #1a221e; --ink: #e8ece9; --muted: #9aa8a1; --line: #2c3731;
+      --accent: #4cc283; --accent-soft: #1d3327; --gold: #e2b350; --gold-soft: #33291a;
+      --blue: #7fa8e6; --blue-soft: #1c2738; --gray-soft: #242c28;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121815; --surface: #1a221e; --ink: #e8ece9; --muted: #9aa8a1; --line: #2c3731;
+    --accent: #4cc283; --accent-soft: #1d3327; --gold: #e2b350; --gold-soft: #33291a;
+    --blue: #7fa8e6; --blue-soft: #1c2738; --gray-soft: #242c28;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 Inter, system-ui, sans-serif; }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 0 16px 80px; }
+  a { color: var(--accent); }
+
+  header.title { text-align: center; padding: 56px 16px 32px; }
+  .logo { font-family: Fraunces, Georgia, serif; font-weight: 800; font-size: clamp(44px, 9vw, 72px); letter-spacing: -0.03em; margin: 0; line-height: 1; }
+  .logo span { color: var(--accent); }
+  .tagline { margin: 10px 0 4px; font-size: 18px; color: var(--muted); }
+  .tagline b { color: var(--gold); }
+  .doc-meta { font-size: 14px; color: var(--muted); }
+
+  .glance { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin: 8px 0 32px; }
+  .glance div { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+  .glance small { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
+  .glance b { font-size: 17px; }
+
+  nav.toc { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px 24px; margin-bottom: 32px; }
+  nav.toc ol { margin: 0; padding-left: 20px; columns: 2; column-gap: 32px; }
+  nav.toc li { break-inside: avoid; padding: 2px 0; }
+  nav.toc a { color: var(--ink); text-decoration: none; }
+  nav.toc a:hover { color: var(--accent); text-decoration: underline; }
+  @media (max-width: 600px) { nav.toc ol { columns: 1; } }
+
+  .phase { font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); margin: 44px 0 8px; }
+  section { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 24px; margin-bottom: 16px; scroll-margin-top: 16px; }
+  h2 { font-family: Fraunces, Georgia, serif; font-weight: 600; font-size: 24px; margin: 0 0 12px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 12px; }
+  h2 .right { margin-left: auto; display: flex; gap: 6px; }
+  h3 { font-size: 16px; margin: 22px 0 6px; }
+  ul, ol { padding-left: 20px; margin: 6px 0; }
+  li { margin: 4px 0; }
+  p { margin: 0 0 10px; }
+  .muted { color: var(--muted); }
+
+  .pages { font-family: Inter, sans-serif; font-size: 12px; font-weight: 500; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; white-space: nowrap; }
+  .status { font-family: Inter, sans-serif; font-size: 12px; font-weight: 600; border-radius: 999px; padding: 2px 10px; white-space: nowrap; }
+  .status.todo  { background: var(--gray-soft); color: var(--muted); }
+  .status.doing { background: var(--blue-soft); color: var(--blue); }
+  .status.done  { background: var(--accent-soft); color: var(--accent); }
+  .status.draft { background: var(--gold-soft); color: var(--gold); }
+
+  .fill { color: var(--muted); font-style: italic; }
+  .note { background: var(--gold-soft); border-left: 4px solid var(--gold); border-radius: 8px; padding: 12px 16px; margin: 12px 0; }
+  .note b { color: var(--ink); }
+
+  .table-wrap { overflow-x: auto; margin: 8px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; white-space: nowrap; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  tr.total td { font-weight: 700; border-top: 2px solid var(--ink); border-bottom: 0; }
+
+  .roles { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); margin-top: 8px; }
+  .role { border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; background: var(--bg); }
+  .role .who { font-weight: 600; color: var(--accent); font-size: 14px; }
+  .role .what { font-weight: 600; margin: 2px 0 6px; }
+  .role p { margin: 0; font-size: 14px; color: var(--muted); }
+
+  .versions { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .version { border: 1px solid var(--line); border-radius: 12px; padding: 16px; background: var(--bg); }
+  .version h4 { margin: 0 0 4px; font-size: 17px; display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+  .version ul { font-size: 14px; }
+
+  .swatches { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
+  .swatch { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+  .swatch i { width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--line); }
+
+  footer { text-align: center; color: var(--muted); font-size: 14px; margin-top: 48px; }
+
+  @media print {
+    body { background: #fff; color: #000; }
+    section, nav.toc, .glance div { border-color: #ccc; break-inside: avoid; }
+    .phase { break-after: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="title">
+    <h1 class="logo">cent<span>sible.</span></h1>
+    <p class="tagline">make <b>cents</b> of college.</p>
+    <p class="doc-meta">DECA 2026–27 Project Document · Team: Dia, Ari, Sanskriti · Last updated <b>October 12, 2026</b></p>
+  </header>
+
+  <div class="glance">
+    <div><small>Current phase</small><b>Planning → Execution</b></div>
+    <div><small>App</small><b>Version 1 built</b></div>
+    <div><small>Up next</small><b>Version 2 redesign</b></div>
+    <div><small>Competition date</small><b class="fill">TBD</b></div>
+  </div>
+
+  <nav class="toc">
+    <ol>
+      <li><a href="#summary">Executive Summary</a></li>
+      <li><a href="#initiating">Initiating</a></li>
+      <li><a href="#goals">Project Goals &amp; Team Roles</a></li>
+      <li><a href="#schedule">Schedule</a></li>
+      <li><a href="#quality">Quality &amp; Risk Management</a></li>
+      <li><a href="#budget">Proposed Project Budget</a></li>
+      <li><a href="#execution">Execution</a></li>
+      <li><a href="#monitoring">Monitoring</a></li>
+      <li><a href="#controlling">Controlling</a></li>
+      <li><a href="#metrics">Evaluation of Key Metrics</a></li>
+      <li><a href="#lessons">Lessons Learned &amp; Recommendations</a></li>
+      <li><a href="#bibliography">Bibliography</a></li>
+      <li><a href="#open">Open Decisions &amp; To-Dos</a></li>
+      <li><a href="#theme">Presentation Theme Colors</a></li>
+      <li><a href="#changelog">Change Log</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ EXECUTIVE SUMMARY ============ -->
+  <section id="summary">
+    <h2>Executive Summary <span class="right"><span class="status draft">Draft</span><span class="pages">2 pages</span></span></h2>
+    <p>Many high school students head to college without understanding how tuition, student loans, and budgeting work, and they make decisions that follow them for a decade or more. <b>Centsible</b> is a mobile-friendly website that teaches these three topics through short lessons and the <b>3-Minute College Challenge</b>, an interactive simulation where students choose a school, find financial aid, borrow, and build their first post-graduation budget.</p>
+    <p>Our team will design and build the website, have it reviewed by financial and technical professionals, and promote it through digital channels and an in-person pop-up event. We will measure success with pre- and post-quizzes, website usage, and simulation completions.</p>
+    <p class="fill">To finish after execution: key results, knowledge improvement, and recommendations.</p>
+  </section>
+
+  <!-- ============ INITIATING ============ -->
+  <div class="phase">Initiating</div>
+  <section id="initiating">
+    <h2>Initiating <span class="right"><span class="status doing">In progress</span><span class="pages">1 page</span></span></h2>
+    <h3>Why this matters</h3>
+    <p class="fill">Explain why understanding college finances before graduation is important. Add statistics on student debt and financial literacy.</p>
+
+    <h3>Initial investigation: student survey (in person)</h3>
+    <ul>
+      <li>Name <span class="muted">(consider a nickname or anonymous ID; check school policy for students under 18)</span></li>
+      <li>“On a scale of 1–5, rate your preparedness for managing college finances”</li>
+    </ul>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Survey result</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td>Students surveyed</td><td class="fill">—</td></tr>
+          <tr><td>Average preparedness (1–5)</td><td class="fill">—</td></tr>
+          <tr><td>Biggest knowledge gaps found</td><td class="fill">—</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Scope</h3>
+    <ul>
+      <li><b>Purpose:</b> teach high schoolers the basics of tuition, student loans, and budgeting before they make college decisions.</li>
+      <li><b>Benefits:</b> fewer costly mistakes, more aid claimed (FAFSA), smarter borrowing.</li>
+      <li><b>Why high schoolers:</b> the biggest money decisions (where to go, how to pay) happen in junior and senior year.</li>
+      <li><b>How we relate:</b> <span class="fill">we're students facing these decisions ourselves…</span></li>
+      <li><b>In scope:</b> website with lessons, simulation, quizzes; digital and in-person outreach at our school.</li>
+      <li><b>Out of scope (for now):</b> native App Store app, personal financial advice, other schools.</li>
+    </ul>
+  </section>
+
+  <!-- ============ PLANNING ============ -->
+  <div class="phase">Planning &amp; Organizing</div>
+  <section id="goals">
+    <h2>Project Goals &amp; Team Roles <span class="right"><span class="status done">Done</span><span class="pages">1 page</span></span></h2>
+    <h3>Goals</h3>
+    <ol>
+      <li>Build an engaging, accurate, accessible financial literacy website for high schoolers.</li>
+      <li>Have the content and website reviewed by professionals.</li>
+      <li>Reach students through digital and in-person outreach.</li>
+      <li>Measurably improve students' knowledge of tuition, loans, and budgeting.</li>
+    </ol>
+    <h3>Roles, skills &amp; responsibilities</h3>
+    <div class="roles">
+      <div class="role">
+        <div class="who">Dia</div>
+        <div class="what">Coordinating Lead</div>
+        <p>Timeline for deliverables, school and community approval for events, coordination between team members.</p>
+      </div>
+      <div class="role">
+        <div class="who">Ari + Dia</div>
+        <div class="what">Technology &amp; Curriculum Lead</div>
+        <p>Website development and testing, content review.</p>
+      </div>
+      <div class="role">
+        <div class="who">Sanskriti + Ari</div>
+        <div class="what">Marketing &amp; Impact Lead</div>
+        <p>Outreach expansion, event coordination, survey and data analysis.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="schedule">
+    <h2>Schedule <span class="right"><span class="status doing">In progress</span><span class="pages">1 page</span></span></h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Milestone</th><th>Owner</th><th>Target date</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Research + student surveys</td><td>Sanskriti, Ari</td><td class="fill">—</td><td><span class="status todo">Not started</span></td></tr>
+          <tr><td>2</td><td>Website design and development</td><td>Ari, Dia</td><td class="fill">—</td><td><span class="status doing">In progress</span></td></tr>
+          <tr><td>3</td><td>Professional peer review (curriculum + website)</td><td>Dia</td><td class="fill">—</td><td><span class="status todo">Not started</span></td></tr>
+          <tr><td>4</td><td>Website testing + revisions</td><td>Ari, Dia</td><td class="fill">—</td><td><span class="status todo">Not started</span></td></tr>
+          <tr><td>5</td><td>Digital marketing and outreach</td><td>Sanskriti, Ari</td><td class="fill">—</td><td><span class="status todo">Not started</span></td></tr>
+          <tr><td>6</td><td>In-person outreach (pop-up)</td><td>Sanskriti, Ari</td><td class="fill">—</td><td><span class="status todo">Not started</span></td></tr>
+          <tr><td>7</td><td>Data analysis and evaluation</td><td>Sanskriti, Ari</td><td class="fill">—</td><td><span class="status todo">Not started</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="quality">
+    <h2>Quality &amp; Risk Management <span class="right"><span class="status draft">Draft</span><span class="pages">1 page</span></span></h2>
+    <p>How we'll ensure the website is accurate, functional, and accessible.</p>
+    <h3>Quality management</h3>
+    <ul>
+      <li><b>Accuracy:</b> financial reviewer checks all figures, quiz answers, and lesson content; every figure is cited in the bibliography.</li>
+      <li><b>Functionality:</b> technical reviewer and team test on iPhone, Android, and Chromebook.</li>
+      <li><b>Usability:</b> student testing with classmates; we watch them use it and note where they get stuck or lose interest.</li>
+      <li><b>Accessibility:</b> readable text size, color contrast, keyboard navigation, works on phones without installing anything.</li>
+    </ul>
+    <h3>Risk register</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Risk</th><th>Likelihood</th><th>Impact</th><th>Plan</th><th>Owner</th></tr></thead>
+        <tbody>
+          <tr><td>Technical difficulties (bugs, hosting)</td><td>Medium</td><td>High</td><td>Test early on multiple devices; keep version 1 as a working backup</td><td>Ari</td></tr>
+          <tr><td>Limited student engagement</td><td>Medium</td><td>High</td><td>Game-style redesign (v2), friend challenges, pop-up competition</td><td>Sanskriti</td></tr>
+          <tr><td>Delayed approval from schools or reviewers</td><td>Medium</td><td>Medium</td><td>Request approvals early; backup reviewer for each role</td><td>Dia</td></tr>
+          <tr><td>Inaccurate financial information</td><td>Low</td><td>High</td><td>Professional review; cite official sources</td><td>Dia, Ari</td></tr>
+          <tr><td>Student privacy concerns</td><td>Low</td><td>High</td><td>Nicknames only; no personal data collected in the app</td><td>Ari</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="budget">
+    <h2>Proposed Project Budget <span class="right"><span class="status draft">Draft</span><span class="pages">1 page</span></span></h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Item</th><th>Purpose</th><th class="num">Estimated</th><th class="num">Actual</th></tr></thead>
+        <tbody>
+          <tr><td>Website hosting</td><td>Free tier (Netlify / GitHub Pages)</td><td class="num">$0</td><td class="num fill">—</td></tr>
+          <tr><td>Database</td><td>Free tier (Supabase / Firebase) for quiz and usage data</td><td class="num">$0</td><td class="num fill">—</td></tr>
+          <tr><td>Domain name</td><td>Optional custom web address, 1 year</td><td class="num">$12</td><td class="num fill">—</td></tr>
+          <tr><td>QR code posters / flyers</td><td>School hallways and pop-up table</td><td class="num fill">—</td><td class="num fill">—</td></tr>
+          <tr><td>Pop-up prizes</td><td>Rewards for top challenge scores</td><td class="num fill">—</td><td class="num fill">—</td></tr>
+          <tr class="total"><td>Total</td><td></td><td class="num fill">—</td><td class="num fill">—</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ EXECUTION ============ -->
+  <div class="phase">Execution</div>
+  <section id="execution">
+    <h2>Execution <span class="right"><span class="status doing">In progress</span><span class="pages">4 pages</span></span></h2>
+
+    <h3>1. Making &amp; testing the website</h3>
+    <div class="versions">
+      <div class="version">
+        <h4>Version 1 <span class="status done">Built Oct 12</span></h4>
+        <p class="muted" style="font-size:14px">Folder: <code>version 1/</code></p>
+        <ul>
+          <li>Pre-quiz → 3 lessons → 3-Minute Challenge → post-quiz → score</li>
+          <li>Simulation: pick school, find aid, choose loans, build budget, surprise expense</li>
+          <li>Score out of 1,000, friend challenge link</li>
+          <li>Team dashboard with CSV export and channel tracking (<code>?src=</code>)</li>
+          <li><b>Limits:</b> text-heavy, form-like; data saved on each device only</li>
+        </ul>
+      </div>
+      <div class="version">
+        <h4>Version 2 <span class="status todo">Planned</span></h4>
+        <p class="muted" style="font-size:14px">Goal: hold high schoolers' attention</p>
+        <ul>
+          <li>Swipe-card decisions with life meters (💰 📉 😊 📚)</li>
+          <li>Lessons as quick "consequence" pop-ups instead of reading pages</li>
+          <li>Game-show style quiz (timers, streaks, price guessing)</li>
+          <li>Shareable "money personality" result card</li>
+          <li>Live leaderboard for the pop-up</li>
+          <li>Shared online database for all results</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>2. Peer review by professionals</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Role</th><th>Reviewer</th><th>Date</th><th>Feedback</th><th>Changes made</th></tr></thead>
+        <tbody>
+          <tr><td>Financial literacy: checks accuracy</td><td>Annabelle's mom (bank)<br><span class="muted">Backup: Dia's dad</span></td><td class="fill">—</td><td class="fill">—</td><td class="fill">—</td></tr>
+          <tr><td>Technical: reliability, usability, accessibility</td><td>Ari's dad, Dia's mom's friend</td><td class="fill">—</td><td class="fill">—</td><td class="fill">—</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>3. Launching the website &amp; online marketing</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Channel</th><th>Tracking link ending</th><th>Date</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>School counseling newsletter</td><td><code>?src=newsletter</code></td><td class="fill">—</td><td><span class="status todo">Not started</span></td></tr>
+          <tr><td>Social media posts and reels</td><td><code>?src=social</code></td><td class="fill">—</td><td><span class="status todo">Not started</span></td></tr>
+          <tr><td>School announcements</td><td><code>?src=announce</code></td><td class="fill">—</td><td><span class="status todo">Not started</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>4. Expanding outreach in person</h3>
+    <div class="note">
+      <b>3-Minute College Challenge Pop-Up</b>: proposed target <b>40 app visits</b>.<br>
+      Students scan a QR code (<code>?src=qr</code>), complete the mini-simulation, and challenge friends to beat their score.
+      <br><span class="muted">Date / location: TBD · Approval: TBD</span>
+    </div>
+
+    <h3>5. Gathering data &amp; presenting statistics</h3>
+    <ul>
+      <li>Collect pre- and post-quiz responses</li>
+      <li>Track website visits and simulation replays</li>
+      <li>Compare effectiveness of marketing channels</li>
+      <li>Evaluate knowledge improvement</li>
+      <li>Create charts: bar graphs, assessment comparisons, summary statistics</li>
+    </ul>
+  </section>
+
+  <!-- ============ MONITORING & CONTROLLING ============ -->
+  <div class="phase">Monitoring &amp; Controlling</div>
+  <section id="monitoring">
+    <h2>Monitoring <span class="right"><span class="status doing">In progress</span><span class="pages">2 pages</span></span></h2>
+    <h3>Project progress &amp; quality monitoring</h3>
+    <ul>
+      <li>Monitor task completion (combats unorganized scheduling and standardizes planning)</li>
+      <li>Track app development milestones, including software issues and performance testing</li>
+      <li>Record professional reviews</li>
+      <li>Monitor planned vs. actual expenses</li>
+      <li>Document weekly team meetings and progress reports</li>
+    </ul>
+    <h3>Marketing &amp; engagement monitoring</h3>
+    <ul>
+      <li>Track engagement across marketing platforms</li>
+      <li>Analyze visitors and completed simulations</li>
+      <li>Evaluate effectiveness of in-person vs. digital outreach</li>
+      <li>Review student feedback and identify improvements</li>
+      <li>Compare engagement goals with actual outcomes</li>
+    </ul>
+    <h3>Progress &amp; meeting log</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Date</th><th>Who</th><th>Progress</th><th>Next steps</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Oct 12, 2026</td><td>Ari</td>
+            <td>Turned outline into project document; built website version 1; brainstormed a more engaging design</td>
+            <td>Pick version 2 direction; test v1 with classmates; book reviewers</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="controlling">
+    <h2>Controlling <span class="right"><span class="status doing">In progress</span><span class="pages">1 page</span></span></h2>
+    <p>Problem → Action → Final Outcome chart documenting corrective actions and their effectiveness.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Date</th><th>Problem</th><th>Action</th><th>Final outcome</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Oct 12, 2026</td>
+            <td>Version 1 is text-heavy and form-like; not engaging for high schoolers with short attention spans</td>
+            <td>Brainstormed game-style redesign: swipe cards, consequence pop-ups, shareable results</td>
+            <td><span class="status doing">Pending: v2</span></td>
+          </tr>
+          <tr>
+            <td>Oct 12, 2026</td>
+            <td>Version 1 saves results only on each student's phone, so team can't see combined data</td>
+            <td>Plan to add a free shared database in version 2</td>
+            <td><span class="status doing">Pending: v2</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ CLOSING ============ -->
+  <div class="phase">Closing</div>
+  <section id="metrics">
+    <h2>Evaluation of Key Metrics <span class="right"><span class="status todo">Not started</span><span class="pages">1 page</span></span></h2>
+    <p>Comparing measurable goals with results.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Performance indicator</th><th class="num">Goal</th><th class="num">Actual</th><th>Met?</th></tr></thead>
+        <tbody>
+          <tr><td>Students reached from marketing</td><td class="num fill">—</td><td class="num fill">—</td><td></td></tr>
+          <tr><td>App users</td><td class="num fill">—</td><td class="num fill">—</td><td></td></tr>
+          <tr><td>Completed simulations</td><td class="num fill">—</td><td class="num fill">—</td><td></td></tr>
+          <tr><td>In-person participants (pop-up app visits)</td><td class="num">40</td><td class="num fill">—</td><td></td></tr>
+          <tr><td>Professional reviews</td><td class="num">2</td><td class="num fill">—</td><td></td></tr>
+          <tr><td>Knowledge improvement (pre → post quiz)</td><td class="num fill">—</td><td class="num fill">—</td><td></td></tr>
+          <tr><td>Positive feedback from users</td><td class="num fill">—</td><td class="num fill">—</td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="lessons">
+    <h2>Lessons Learned &amp; Recommendations <span class="right"><span class="status todo">Not started</span><span class="pages">1 page</span></span></h2>
+    <ul>
+      <li>Reflect on project management, collaboration, and app development</li>
+      <li>Identify the most and least effective marketing methods</li>
+      <li>Lessons learned from collaboration and student feedback</li>
+      <li>Identify and evaluate limitations and challenges</li>
+      <li>Possible expansion to other high schools?</li>
+      <li>Continued use outside of competition (extended influence)</li>
+    </ul>
+    <h3>Running notes</h3>
+    <ul>
+      <li><b>Oct 12:</b> A working prototype isn't enough. Design for the audience's attention span from the start.</li>
+    </ul>
+  </section>
+
+  <section id="bibliography">
+    <h2>Bibliography <span class="right"><span class="status doing">In progress</span><span class="pages">1 page</span></span></h2>
+    <p class="muted">Sources used for figures in the website. Confirm each with the financial reviewer.</p>
+    <ul>
+      <li>College Board. <i>Trends in College Pricing and Student Aid 2024.</i> Average tuition and room &amp; board figures.</li>
+      <li>Federal Student Aid, U.S. Department of Education. <i>Interest Rates and Fees for Federal Student Loans</i> (studentaid.gov). 2025–26 undergraduate rate: 6.39%.</li>
+      <li>Federal Student Aid, U.S. Department of Education. <i>Annual and Aggregate Loan Limits</i> (studentaid.gov). Dependent undergraduate limits.</li>
+      <li>Warren, Elizabeth, and Amelia Warren Tyagi. <i>All Your Worth: The Ultimate Lifetime Money Plan.</i> Free Press, 2005. 50/30/20 budgeting rule.</li>
+    </ul>
+  </section>
+
+  <!-- ============ LIVING-DOC EXTRAS ============ -->
+  <div class="phase">Working Notes</div>
+  <section id="open">
+    <h2>Open Decisions &amp; To-Dos</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Item</th><th>Owner</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Choose version 2 design direction (vote with classmates?)</td><td>Team</td><td><span class="status todo">Open</span></td></tr>
+          <tr><td>Pick presentation theme colors</td><td>Team</td><td><span class="status todo">Open</span></td></tr>
+          <tr><td>Confirm competition date and deadlines</td><td>Dia</td><td><span class="status todo">Open</span></td></tr>
+          <tr><td>Book financial and technical reviewers</td><td>Dia</td><td><span class="status todo">Open</span></td></tr>
+          <tr><td>Decide how to handle names in survey (privacy)</td><td>Sanskriti</td><td><span class="status todo">Open</span></td></tr>
+          <tr><td>Choose hosting and set up shared database</td><td>Ari</td><td><span class="status todo">Open</span></td></tr>
+          <tr><td>Get school approval for pop-up event</td><td>Dia</td><td><span class="status todo">Open</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="theme">
+    <h2>Presentation Theme Colors <span class="right"><span class="status draft">Placeholder</span></span></h2>
+    <div class="swatches">
+      <div class="swatch"><i style="background:#1f7a4d"></i>Money Green #1F7A4D</div>
+      <div class="swatch"><i style="background:#c9962b"></i>Coin Gold #C9962B</div>
+      <div class="swatch"><i style="background:#1c2a24"></i>Deep Ink #1C2A24</div>
+      <div class="swatch"><i style="background:#f7f6f1"></i>Paper #F7F6F1</div>
+    </div>
+  </section>
+
+  <section id="changelog">
+    <h2>Change Log</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Date</th><th>Who</th><th>What changed</th></tr></thead>
+        <tbody>
+          <tr><td>Oct 12, 2026</td><td>Ari</td><td>Created project document from outline. Added schedule tracker, risk register, budget, reviewer and marketing trackers, version history, meeting log, controlling chart, bibliography, and to-do list.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>centsible. — make cents of college.</footer>
+</div>
+</body>
+</html>

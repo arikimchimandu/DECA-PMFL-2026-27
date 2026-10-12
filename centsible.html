@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Centsible Project Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f7f6f1;
+    --surface: #ffffff;
+    --ink: #1c2a24;
+    --muted: #5d6b64;
+    --line: #e2e0d6;
+    --accent: #1f7a4d;
+    --accent-soft: #e3f1e8;
+    --gold: #c9962b;
+    --gold-soft: #f8efd9;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121815;
+      --surface: #1a221e;
+      --ink: #e8ece9;
+      --muted: #9aa8a1;
+      --line: #2c3731;
+      --accent: #4cc283;
+      --accent-soft: #1d3327;
+      --gold: #e2b350;
+      --gold-soft: #33291a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121815;
+    --surface: #1a221e;
+    --ink: #e8ece9;
+    --muted: #9aa8a1;
+    --line: #2c3731;
+    --accent: #4cc283;
+    --accent-soft: #1d3327;
+    --gold: #e2b350;
+    --gold-soft: #33291a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 16px/1.6 Inter, system-ui, sans-serif;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 0 16px 80px; }
+
+  header.title {
+    text-align: center;
+    padding: 72px 16px 56px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 40px;
+  }
+  .logo {
+    font-family: Fraunces, Georgia, serif;
+    font-weight: 800;
+    font-size: clamp(48px, 10vw, 84px);
+    letter-spacing: -0.03em;
+    margin: 0;
+    line-height: 1;
+  }
+  .logo span { color: var(--accent); }
+  .tagline {
+    margin: 12px 0 0;
+    font-size: 18px;
+    color: var(--muted);
+  }
+  .tagline b { color: var(--gold); font-weight: 600; }
+
+  nav.toc {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin-bottom: 40px;
+  }
+  nav.toc h2 { margin-top: 0; }
+  nav.toc ol { margin: 0; padding-left: 20px; columns: 2; column-gap: 32px; }
+  nav.toc li { break-inside: avoid; padding: 2px 0; }
+  nav.toc a { color: var(--ink); text-decoration: none; }
+  nav.toc a:hover { color: var(--accent); text-decoration: underline; }
+  @media (max-width: 600px) { nav.toc ol { columns: 1; } }
+
+  .phase {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 48px 0 8px;
+  }
+  section {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 16px;
+    scroll-margin-top: 16px;
+  }
+  h2 {
+    font-family: Fraunces, Georgia, serif;
+    font-weight: 600;
+    font-size: 24px;
+    margin: 0 0 12px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  h3 { font-size: 16px; margin: 20px 0 6px; }
+  .pages {
+    font-family: Inter, sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 2px 10px;
+    white-space: nowrap;
+  }
+  ul { padding-left: 20px; margin: 6px 0; }
+  li { margin: 4px 0; }
+  li ul { margin: 2px 0; }
+  .muted { color: var(--muted); }
+
+  .roles { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-top: 8px; }
+  .role {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 16px;
+    background: var(--bg);
+  }
+  .role .who { font-weight: 600; color: var(--accent); font-size: 14px; }
+  .role .what { font-weight: 600; margin: 2px 0 6px; }
+  .role p { margin: 0; font-size: 14px; color: var(--muted); }
+
+  .timeline { list-style: none; padding: 0; margin: 8px 0 0; counter-reset: step; }
+  .timeline li {
+    counter-increment: step;
+    position: relative;
+    padding: 8px 0 8px 44px;
+    border-left: 2px solid var(--line);
+    margin-left: 14px;
+  }
+  .timeline li::before {
+    content: counter(step);
+    position: absolute;
+    left: -15px; top: 6px;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 600; font-size: 13px;
+    display: grid; place-items: center;
+  }
+  .timeline li:last-child { border-left-color: transparent; }
+
+  .callout {
+    background: var(--gold-soft);
+    border-left: 4px solid var(--gold);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin: 12px 0;
+  }
+  .callout b { color: var(--ink); }
+
+  .flow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+  .flow div {
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+    font-weight: 600;
+  }
+  .flow small { display: block; font-weight: 400; color: var(--muted); margin-top: 4px; }
+  @media (max-width: 600px) { .flow { grid-template-columns: 1fr; } }
+
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 15px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+  td.blank { color: var(--muted); width: 30%; }
+  td.blank span { display: inline-block; min-width: 80px; border-bottom: 1px solid var(--muted); }
+
+  .swatches { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
+  .swatch { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+  .swatch i { width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--line); }
+
+  footer { text-align: center; color: var(--muted); font-size: 14px; margin-top: 48px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="title" id="title">
+    <h1 class="logo">cent<span>sible.</span></h1>
+    <p class="tagline">make <b>cents</b> of college.</p>
+  </header>
+
+  <nav class="toc" id="toc">
+    <h2>Table of Contents</h2>
+    <ol>
+      <li><a href="#summary">Executive Summary</a></li>
+      <li><a href="#initiating">Initiating</a></li>
+      <li><a href="#goals">Project Goals &amp; Team Roles</a></li>
+      <li><a href="#schedule">Schedule</a></li>
+      <li><a href="#quality">Quality &amp; Risk Management</a></li>
+      <li><a href="#budget">Proposed Project Budget</a></li>
+      <li><a href="#execution">Execution</a></li>
+      <li><a href="#monitoring">Monitoring</a></li>
+      <li><a href="#controlling">Controlling</a></li>
+      <li><a href="#metrics">Evaluation of Key Metrics</a></li>
+      <li><a href="#lessons">Lessons Learned &amp; Recommendations</a></li>
+      <li><a href="#bibliography">Bibliography</a></li>
+      <li><a href="#theme">Presentation Theme Colors</a></li>
+    </ol>
+  </nav>
+
+  <section id="summary">
+    <h2>Executive Summary <span class="pages">2 pages</span></h2>
+    <p class="muted">To be written.</p>
+  </section>
+
+  <div class="phase">Initiating</div>
+  <section id="initiating">
+    <h2>Initiating <span class="pages">1 page</span></h2>
+    <ul>
+      <li>Explain why understanding college finances before graduation is important</li>
+      <li>Conduct an initial investigation of prior financial literacy knowledge to identify knowledge gaps and what to remediate
+        <ul>
+          <li><b>Survey (in person):</b>
+            <ul>
+              <li>Name</li>
+              <li>“On a scale of 1–5, rate your preparedness for managing college finances”</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li>Define our scope: purpose, benefits, why we target high schoolers, and how we relate to it</li>
+    </ul>
+  </section>
+
+  <div class="phase">Planning &amp; Organizing</div>
+  <section id="goals">
+    <h2>Project Goals &amp; Team Roles <span class="pages">1 page</span></h2>
+    <p class="muted">Team member roles, skills, strengths, and responsibilities.</p>
+    <div class="roles">
+      <div class="role">
+        <div class="who">Dia</div>
+        <div class="what">Coordinating Lead</div>
+        <p>Creating a timeline for project deliverables, organizing school and community approval for events, coordinating between team members.</p>
+      </div>
+      <div class="role">
+        <div class="who">Ari + Dia</div>
+        <div class="what">Technology &amp; Curriculum Lead</div>
+        <p>Website development and testing, and content review.</p>
+      </div>
+      <div class="role">
+        <div class="who">Sanskriti + Ari</div>
+        <div class="what">Marketing &amp; Impact Lead</div>
+        <p>Outreach expansion, event coordination, and analysis of surveys and data.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="schedule">
+    <h2>Schedule <span class="pages">1 page</span></h2>
+    <ol class="timeline">
+      <li>Research + Student Surveys</li>
+      <li>Website Design and Development</li>
+      <li>Professional Peer Review (curriculum and website)</li>
+      <li>Website Testing + Revisions</li>
+      <li>Digital Marketing and Outreach</li>
+      <li>In-Person Outreach</li>
+      <li>Data Analysis and Evaluation</li>
+    </ol>
+  </section>
+
+  <section id="quality">
+    <h2>Quality &amp; Risk Management <span class="pages">1 page</span></h2>
+    <p>How we’ll ensure the website is accurate, functional, and accessible.</p>
+    <h3>Quality Management</h3>
+    <ul>
+      <li>Peer review for usability and functionality</li>
+      <li>Student testing to ensure accessibility</li>
+    </ul>
+    <h3>Risk Management — Possible Challenges</h3>
+    <ul>
+      <li>Technical difficulties</li>
+      <li>Limited engagement</li>
+      <li>Delayed approval from schools and reviewers</li>
+    </ul>
+  </section>
+
+  <section id="budget">
+    <h2>Proposed Project Budget <span class="pages">1 page</span></h2>
+    <p class="muted">To be completed.</p>
+  </section>
+
+  <div class="phase">Execution</div>
+  <section id="execution">
+    <h2>Execution <span class="pages">4 pages</span></h2>
+
+    <h3>1. Making &amp; Testing the Website</h3>
+
+    <h3>2. Peer Review by Professionals</h3>
+    <p class="muted">For both the curriculum and the website.</p>
+    <ul>
+      <li><b>Financial literacy reviewer</b> — checks accuracy of information
+        <ul><li>Annabelle’s mom (bank); Dia’s dad (2nd option)</li></ul>
+      </li>
+      <li><b>Technical reviewer</b> — evaluates website reliability, usability, and accessibility
+        <ul><li>Ari’s dad and Dia’s mom’s friend</li></ul>
+      </li>
+      <li>Explain how professional feedback influenced the website</li>
+    </ul>
+
+    <h3>3. Launching the Website &amp; Online Marketing</h3>
+    <ul>
+      <li>School counseling newsletters</li>
+      <li>Social media outreach — posts and reels</li>
+      <li>School announcements</li>
+    </ul>
+
+    <h3>4. Expanding Outreach In Person</h3>
+    <div class="callout">
+      <b>3-Minute College Challenge Pop-Up</b> — proposed target: <b>40 app visits</b><br>
+      Students scan a QR code, complete a mini-simulation, and challenge friends to beat their financial results.
+    </div>
+
+    <h3>5. Gathering Data &amp; Presenting Statistics</h3>
+    <ul>
+      <li>Collect pre- and post-assessment responses</li>
+      <li>Track website visits and simulation replays</li>
+      <li>Compare effectiveness of marketing channels</li>
+      <li>Evaluate knowledge improvement</li>
+      <li>Create charts presenting participation, engagement, and learning outcomes</li>
+    </ul>
+    <p><b>Possible visuals:</b> bar graphs, assessment comparisons, summary statistics.</p>
+  </section>
+
+  <div class="phase">Monitoring &amp; Controlling</div>
+  <section id="monitoring">
+    <h2>Monitoring <span class="pages">2 pages</span></h2>
+    <h3>Project Progress &amp; Quality Monitoring</h3>
+    <ul>
+      <li>Monitor task completion (combats unorganized scheduling and standardizes planning effectiveness)</li>
+      <li>Track app development milestones, including software issues and performance testing</li>
+      <li>Record professional reviews</li>
+      <li>Monitor planned vs. actual expenses</li>
+      <li>Document weekly team meetings and progress reports</li>
+    </ul>
+    <h3>Marketing &amp; Engagement Monitoring</h3>
+    <ul>
+      <li>Track engagement across marketing platforms</li>
+      <li>Analyze visitors and completed simulations</li>
+      <li>Evaluate effectiveness of in-person vs. digital outreach</li>
+      <li>Review student feedback and identify opportunities for improvement</li>
+      <li>Compare engagement goals with actual outcomes</li>
+    </ul>
+  </section>
+
+  <section id="controlling">
+    <h2>Controlling <span class="pages">1 page</span></h2>
+    <p>Use a Problem → Action → Final Outcome chart to document corrective actions and evaluate their effectiveness.</p>
+    <div class="flow">
+      <div>Problem<small>What went wrong</small></div>
+      <div>Action<small>How we corrected it</small></div>
+      <div>Final Outcome<small>Did it work?</small></div>
+    </div>
+  </section>
+
+  <div class="phase">Closing</div>
+  <section id="metrics">
+    <h2>Evaluation of Key Metrics <span class="pages">1 page</span></h2>
+    <p>Comparing measurable goals with results.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Performance Indicator</th><th>Proposed Goal</th></tr></thead>
+        <tbody>
+          <tr><td>Students reached from marketing</td><td class="blank"><span>&nbsp;</span></td></tr>
+          <tr><td>App users</td><td class="blank"><span>&nbsp;</span></td></tr>
+          <tr><td>Completed simulations</td><td class="blank"><span>&nbsp;</span></td></tr>
+          <tr><td>In-person participants</td><td class="blank"><span>&nbsp;</span></td></tr>
+          <tr><td>Number of professional reviews</td><td class="blank"><span>&nbsp;</span></td></tr>
+          <tr><td>Knowledge improvement (measured by test/quiz?)</td><td class="blank"><span>&nbsp;</span></td></tr>
+          <tr><td>Positive feedback from users</td><td class="blank"><span>&nbsp;</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="lessons">
+    <h2>Lessons Learned &amp; Recommendations <span class="pages">1 page</span></h2>
+    <ul>
+      <li>Reflect on project management, collaboration, and app development</li>
+      <li>Identify the most and least effective marketing methods</li>
+      <li>Lessons learned from collaboration and student feedback</li>
+      <li>Identify and evaluate limitations and challenges</li>
+      <li>Possible expansion to other high schools?</li>
+      <li>Identify continued use outside of competition (extended influence)</li>
+    </ul>
+  </section>
+
+  <section id="bibliography">
+    <h2>Bibliography <span class="pages">1 page</span></h2>
+    <p class="muted">Cite all resources and information used.</p>
+  </section>
+
+  <section id="theme">
+    <h2>Presentation Theme Colors</h2>
+    <div class="swatches">
+      <div class="swatch"><i style="background:#1f7a4d"></i>Money Green</div>
+      <div class="swatch"><i style="background:#c9962b"></i>Coin Gold</div>
+      <div class="swatch"><i style="background:#1c2a24"></i>Deep Ink</div>
+      <div class="swatch"><i style="background:#f7f6f1"></i>Paper</div>
+    </div>
+    <p class="muted" style="margin-top:12px">Placeholder palette — swap in your chosen colors.</p>
+  </section>
+
+  <footer>centsible. — make cents of college.</footer>
+</div>
+</body>
+</html>
