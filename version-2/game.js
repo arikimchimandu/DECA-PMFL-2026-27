@@ -422,7 +422,8 @@
     announce(`You're ${p.t}. Score ${total}.`);
 
     const challengeUrl = () => {
-      const u = new URL(location.pathname, location.origin);
+      const u = new URL(location.href);
+      u.search = ''; u.hash = '';
       u.searchParams.set('beat', total);
       if (nick) u.searchParams.set('by', nick);
       u.searchParams.set('src', 'friend');
