@@ -56,7 +56,7 @@ Note: the read policy means anyone with the site's key can read the events (nick
 
 ## Putting it online
 
-It's a static site — no build step. Drag the `version 2` folder onto Netlify Drop (app.netlify.com/drop), or use GitHub Pages or Vercel.
+It's a static site — no build step. Drag the `version-2` folder onto Netlify Drop (app.netlify.com/drop), or use GitHub Pages or Vercel.
 
 ## Before launch: review checklist
 
