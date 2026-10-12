@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cash or Crash — Game Show Quiz (mockup)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #160f33; --bg2: #2a1a5e; --ink: #ffffff; --muted: #b9b0dd;
+    --lime: #b6f36a; --pink: #ff5ca8; --sky: #4cc9ff; --sun: #ffd23f; --red: #ff5a5f;
+    --t1: #e8304f; --t2: #2f6fe0; --t3: #e3a008; --t4: #1f9d55;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; overflow-x: clip; }
+  body {
+    background: radial-gradient(120% 80% at 50% 0%, var(--bg2), var(--bg) 70%);
+    color: var(--ink);
+    font: 600 17px/1.35 "Bricolage Grotesque", system-ui, sans-serif;
+    overflow-x: hidden;
+  }
+  .stage { max-width: 520px; margin: 0 auto; min-height: 100%; padding: 16px; display: flex; flex-direction: column; }
+  button { font: inherit; color: inherit; border: 0; cursor: pointer; }
+  :focus-visible { outline: 3px solid var(--sun); outline-offset: 3px; }
+
+  /* HUD */
+  .hud { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; }
+  .chip { background: rgba(255,255,255,.1); border-radius: 999px; padding: 6px 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .streak { background: linear-gradient(90deg, #ff7a18, #ff3d6e); }
+  .streak[hidden] { display: none; }
+  .mute { width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,.1); font-size: 18px; }
+
+  /* Intro */
+  .intro { flex: 1; display: flex; flex-direction: column; justify-content: center; text-align: center; gap: 18px; }
+  .logo { font-size: clamp(52px, 15vw, 84px); font-weight: 800; line-height: .9; letter-spacing: -.03em; margin: 0; }
+  .logo .a { color: var(--lime); } .logo .b { color: var(--pink); }
+  .badge { display: inline-block; align-self: center; background: var(--sun); color: #1a1033; padding: 6px 14px; border-radius: 999px; font-weight: 800; transform: rotate(-3deg); }
+  .rules { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+  .rules span { background: rgba(255,255,255,.08); border-radius: 12px; padding: 8px 12px; font-size: 15px; }
+  .big {
+    background: var(--lime); color: #1a1033; font-size: 24px; font-weight: 800;
+    padding: 18px; border-radius: 18px; box-shadow: 0 6px 0 #6fae2a; width: 100%;
+    transition: transform .08s;
+  }
+  .big:active { transform: translateY(4px); box-shadow: 0 2px 0 #6fae2a; }
+
+  /* Question */
+  .q-top { display: flex; align-items: center; gap: 14px; margin: 18px 0 12px; }
+  .ring { width: 64px; height: 64px; flex: none; position: relative; }
+  .ring svg { transform: rotate(-90deg); }
+  .ring .n { position: absolute; inset: 0; display: grid; place-items: center; font-size: 24px; font-weight: 800; }
+  .ring circle.bgc { stroke: rgba(255,255,255,.15); }
+  .ring circle.fg { stroke: var(--lime); transition: stroke-dashoffset 1s linear, stroke .3s; }
+  .ring.low circle.fg { stroke: var(--red); }
+  .ring.low .n { color: var(--red); animation: pulse .5s infinite alternate; }
+  .kind { font-size: 13px; text-transform: uppercase; letter-spacing: .12em; color: var(--sky); font-weight: 800; }
+  .question { font-size: clamp(24px, 6.5vw, 32px); font-weight: 800; line-height: 1.1; margin: 4px 0 0; }
+
+  .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: auto; padding-top: 16px; }
+  .tile {
+    min-height: 110px; border-radius: 16px; padding: 14px; text-align: left;
+    display: flex; flex-direction: column; justify-content: space-between;
+    font-size: 18px; font-weight: 700; box-shadow: 0 5px 0 rgba(0,0,0,.35);
+    transition: transform .1s, opacity .3s, filter .3s;
+  }
+  .tile:active { transform: translateY(3px); }
+  .tile .shape { font-size: 22px; opacity: .9; }
+  .tile:nth-child(1) { background: var(--t1); } .tile:nth-child(2) { background: var(--t2); }
+  .tile:nth-child(3) { background: var(--t3); } .tile:nth-child(4) { background: var(--t4); }
+  .tiles.two { grid-template-columns: 1fr; }
+  .tiles.two .tile { min-height: 120px; font-size: 24px; align-items: center; text-align: center; justify-content: center; gap: 6px; }
+  .tiles.two .tile small { font-size: 16px; opacity: .85; font-weight: 600; }
+  .tiles.locked .tile { pointer-events: none; }
+  .tile.dim { opacity: .25; filter: grayscale(.6); }
+  .tile.right { outline: 4px solid #fff; animation: pop .4s; }
+
+  /* Price guess */
+  .guess { margin-top: auto; padding-top: 16px; text-align: center; }
+  .guess .val { font-size: 56px; font-weight: 800; color: var(--sun); font-variant-numeric: tabular-nums; }
+  .guess input { width: 100%; height: 44px; accent-color: var(--sun); }
+  .guess .ends { display: flex; justify-content: space-between; color: var(--muted); font-size: 14px; margin-bottom: 16px; }
+  .answer-line { height: 0; position: relative; }
+
+  /* Feedback */
+  .flash {
+    position: fixed; inset: 0; display: grid; place-items: center; z-index: 20;
+    background: rgba(10, 6, 30, .82); backdrop-filter: blur(4px); padding: 16px;
+    animation: fade .2s;
+  }
+  .flash .box { max-width: 440px; width: 100%; text-align: center; }
+  .flash .verdict { font-size: clamp(48px, 14vw, 72px); font-weight: 800; line-height: 1; animation: pop .45s; }
+  .flash.ok .verdict { color: var(--lime); } .flash.no .verdict { color: var(--red); }
+  .flash .pts { font-size: 28px; font-weight: 800; margin: 10px 0; color: var(--sun); }
+  .flash .fact { background: rgba(255,255,255,.08); border-radius: 16px; padding: 14px 16px; font-weight: 500; font-size: 17px; text-align: left; margin: 14px 0 18px; }
+  .flash .fact b { color: var(--sky); }
+  .shake { animation: shake .4s; }
+
+  /* End */
+  .end { flex: 1; display: flex; flex-direction: column; gap: 14px; text-align: center; padding-top: 12px; }
+  .end h2 { font-size: 22px; margin: 0; color: var(--muted); }
+  .final { font-size: 84px; font-weight: 800; line-height: 1; color: var(--lime); font-variant-numeric: tabular-nums; }
+  .board { background: rgba(255,255,255,.06); border-radius: 18px; padding: 8px; text-align: left; }
+  .row { display: grid; grid-template-columns: 34px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 12px; font-variant-numeric: tabular-nums; }
+  .row .rk { font-weight: 800; color: var(--muted); }
+  .row.you { background: var(--pink); color: #fff; animation: pop .5s; }
+  .row.you .rk { color: #fff; }
+  .ghost { background: rgba(255,255,255,.1); padding: 14px; border-radius: 14px; width: 100%; }
+  .note { font-size: 13px; color: var(--muted); font-weight: 500; }
+
+  .confetti { position: fixed; top: -12px; width: 10px; height: 14px; z-index: 30; pointer-events: none; animation: fall linear forwards; }
+
+  @keyframes pop { 0% { transform: scale(.6); } 60% { transform: scale(1.12); } 100% { transform: scale(1); } }
+  @keyframes fade { from { opacity: 0; } }
+  @keyframes pulse { to { transform: scale(1.15); } }
+  @keyframes shake { 20%,60% { transform: translateX(-8px); } 40%,80% { transform: translateX(8px); } }
+  @keyframes fall { to { transform: translateY(105vh) rotate(720deg); } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="stage" id="stage"></div>
+
+<script>
+(() => {
+  // ---- Round content ----
+  const ROUNDS = [
+    { type: 'mc', kind: 'Round 1 · Tuition', q: 'Which one usually has the LOWEST yearly tuition?',
+      a: ['Private college', 'Out-of-state state school', 'Community college', 'In-state state school'], correct: 2,
+      fact: 'Community college averages about <b>$4,050/yr</b>. In-state public averages ~$11,600, private ~$43,350.' },
+    { type: 'guess', kind: 'Round 2 · Guess the price', q: 'Guess the average yearly tuition at a private college 👀',
+      min: 0, max: 80000, step: 500, start: 20000, answer: 43350,
+      fact: 'It’s about <b>$43,350/yr</b> — before housing and food. But many private schools give big grants, so always check the <b>net price</b>.' },
+    { type: 'two', kind: 'Round 3 · This or that', q: 'Which loan should you take FIRST?',
+      a: [['🏛️ Federal', '6.39% fixed rate'], ['🏦 Private bank', '~9.5% rate, credit check']], correct: 0,
+      fact: 'Federal loans have <b>lower fixed rates</b> and safer repayment plans. Private loans are usually the last resort.' },
+    { type: 'two', kind: 'Round 4 · True or false', q: '“Subsidized” loans pile up interest while you’re in school.',
+      a: [['✅ True', ''], ['❌ False', '']], correct: 1,
+      fact: 'False! With <b>subsidized</b> loans the government pays the interest while you’re in school. <b>Unsubsidized</b> ones grow.' },
+    { type: 'mc', kind: 'Round 5 · Budgeting', q: 'In the 50/30/20 rule, what’s the 20% for?',
+      a: ['Rent', 'Fun stuff', 'Savings & debt', 'Food'], correct: 2,
+      fact: '<b>50%</b> needs, <b>30%</b> wants, <b>20%</b> savings & paying off debt. Even 10% is a great start.' },
+  ];
+  const SECONDS = 10;
+  const SHAPES = ['▲', '◆', '●', '■'];
+  const RIVALS = [['Room 204', 6240], ['BudgetBoss', 5480], ['Room 210', 4710], ['CashQueen', 3960], ['Mr. K’s class', 3120], ['NoCapNate', 2050]];
+
+  const $stage = document.getElementById('stage');
+  let score = 0, streak = 0, i = 0, timerId = null, left = 0, muted = false, correctCount = 0;
+
+  // ---- Sound + haptics ----
+  let ctx;
+  function beep(freq, dur = 0.12, type = 'sine', vol = 0.15) {
+    if (muted) return;
+    try {
+      ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = type; o.frequency.value = freq; g.gain.value = vol;
+      o.connect(g); g.connect(ctx.destination);
+      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur);
+      o.start(); o.stop(ctx.currentTime + dur);
+    } catch {}
+  }
+  const win = () => { [523, 659, 784].forEach((f, k) => setTimeout(() => beep(f, .15, 'triangle'), k * 90)); };
+  const lose = () => { beep(196, .3, 'sawtooth', .08); try { navigator.vibrate && navigator.vibrate([80, 40, 80]); } catch {} };
+  const tick = () => beep(880, .05, 'square', .04);
+
+  function confetti(n = 80) {
+    const colors = ['#b6f36a', '#ff5ca8', '#4cc9ff', '#ffd23f', '#ffffff'];
+    for (let k = 0; k < n; k++) {
+      const c = document.createElement('div');
+      c.className = 'confetti';
+      c.style.left = Math.random() * 100 + 'vw';
+      c.style.background = colors[k % colors.length];
+      c.style.animationDuration = 1.6 + Math.random() * 1.6 + 's';
+      c.style.animationDelay = Math.random() * .4 + 's';
+      c.style.borderRadius = Math.random() > .5 ? '50%' : '2px';
+      document.body.appendChild(c);
+      setTimeout(() => c.remove(), 3800);
+    }
+  }
+
+  function countUp(el, from, to, ms = 700) {
+    const t0 = performance.now();
+    const step = (t) => {
+      const p = Math.min(1, (t - t0) / ms);
+      el.textContent = Math.round(from + (to - from) * (1 - Math.pow(1 - p, 3))).toLocaleString();
+      if (p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+
+  function hud() {
+    return `<div class="hud">
+      <span class="chip">${i + 1}/${ROUNDS.length}</span>
+      <span class="chip streak" ${streak >= 2 ? '' : 'hidden'}>🔥 ${streak} streak</span>
+      <span class="chip">⭐ <span id="score">${score.toLocaleString()}</span></span>
+      <button class="mute" id="mute" aria-label="${muted ? 'Unmute' : 'Mute'}">${muted ? '🔇' : '🔊'}</button>
+    </div>`;
+  }
+  function bindMute() {
+    document.getElementById('mute').onclick = (e) => {
+      muted = !muted; e.currentTarget.textContent = muted ? '🔇' : '🔊';
+      e.currentTarget.setAttribute('aria-label', muted ? 'Unmute' : 'Mute');
+    };
+  }
+
+  // ---- Screens ----
+  function intro() {
+    score = 0; streak = 0; i = 0; correctCount = 0;
+    $stage.innerHTML = `
+      <div class="intro">
+        <span class="badge">centsible. presents</span>
+        <h1 class="logo"><span class="a">Cash</span><br>or <span class="b">Crash?</span></h1>
+        <div class="rules"><span>⚡ 5 rounds</span><span>⏱ 10 sec each</span><span>🔥 streak bonus</span></div>
+        <p style="color:var(--muted);font-weight:500;margin:0">Answer fast. Faster = more points.</p>
+        <button class="big" id="go">Let’s go 🚀</button>
+      </div>`;
+    document.getElementById('go').onclick = () => { beep(660, .1); round(); };
+  }
+
+  function ringHTML() {
+    const C = 2 * Math.PI * 28;
+    return `<div class="ring" id="ring" role="timer" aria-label="Seconds left">
+      <svg width="64" height="64"><circle class="bgc" cx="32" cy="32" r="28" fill="none" stroke-width="6"/>
+      <circle class="fg" id="fg" cx="32" cy="32" r="28" fill="none" stroke-width="6" stroke-linecap="round"
+        stroke-dasharray="${C}" stroke-dashoffset="0"/></svg>
+      <span class="n" id="secs">${SECONDS}</span></div>`;
+  }
+
+  function round() {
+    const R = ROUNDS[i];
+    let body = '';
+    if (R.type === 'mc') {
+      body = `<div class="tiles" id="tiles">${R.a.map((a, k) =>
+        `<button class="tile" data-k="${k}"><span class="shape" aria-hidden="true">${SHAPES[k]}</span>${a}</button>`).join('')}</div>`;
+    } else if (R.type === 'two') {
+      body = `<div class="tiles two" id="tiles">${R.a.map(([t, s], k) =>
+        `<button class="tile" data-k="${k}">${t}${s ? `<small>${s}</small>` : ''}</button>`).join('')}</div>`;
+    } else {
+      body = `<div class="guess">
+        <div class="val" id="val">$${R.start.toLocaleString()}</div>
+        <input type="range" id="slider" min="${R.min}" max="${R.max}" step="${R.step}" value="${R.start}" aria-label="Your guess">
+        <div class="ends"><span>$0</span><span>$80,000</span></div>
+        <button class="big" id="lock">Lock it in 🔒</button>
+      </div>`;
+    }
+    $stage.innerHTML = `${hud()}
+      <div class="q-top">${ringHTML()}<div><div class="kind">${R.kind}</div></div></div>
+      <h2 class="question">${R.q}</h2>
+      ${body}`;
+    bindMute();
+
+    const t0 = Date.now();
+    const elapsed = () => (Date.now() - t0) / 1000;
+    startTimer(() => answer(null, 0));
+
+    if (R.type === 'guess') {
+      const s = document.getElementById('slider'), v = document.getElementById('val');
+      s.oninput = () => { v.textContent = '$' + (+s.value).toLocaleString(); };
+      document.getElementById('lock').onclick = () => answer(+s.value, elapsed());
+    } else {
+      document.querySelectorAll('.tile').forEach((b) => { b.onclick = () => answer(+b.dataset.k, elapsed()); });
+    }
+  }
+
+  function startTimer(onTimeout) {
+    left = SECONDS;
+    const C = 2 * Math.PI * 28;
+    const fg = document.getElementById('fg'), secs = document.getElementById('secs'), ring = document.getElementById('ring');
+    requestAnimationFrame(() => { fg.style.strokeDashoffset = C / SECONDS; });
+    timerId = setInterval(() => {
+      left -= 1;
+      secs.textContent = Math.max(0, left);
+      fg.style.strokeDashoffset = C * (1 - (left - 1) / SECONDS);
+      if (left <= 3) { ring.classList.add('low'); tick(); }
+      if (left <= 0) { clearInterval(timerId); onTimeout(); }
+    }, 1000);
+  }
+
+  function answer(choice, secsUsed) {
+    clearInterval(timerId);
+    const R = ROUNDS[i];
+    let ok, pts = 0, extra = '';
+    const speed = Math.max(0, 1 - secsUsed / SECONDS);
+
+    if (R.type === 'guess') {
+      if (choice === null) { ok = false; }
+      else {
+        const off = Math.abs(choice - R.answer);
+        const closeness = Math.max(0, 1 - off / 30000);
+        ok = off <= 8000;
+        pts = Math.round(closeness * 800 + (ok ? speed * 200 : 0));
+        extra = `You guessed <b>$${choice.toLocaleString()}</b> — off by $${off.toLocaleString()}.`;
+      }
+    } else {
+      ok = choice === R.correct;
+      if (ok) pts = Math.round(500 + speed * 500);
+      const tiles = document.getElementById('tiles');
+      tiles.classList.add('locked');
+      tiles.querySelectorAll('.tile').forEach((t) => {
+        if (+t.dataset.k === R.correct) t.classList.add('right'); else t.classList.add('dim');
+      });
+    }
+
+    streak = ok ? streak + 1 : 0;
+    const mult = streak >= 3 ? 2 : streak === 2 ? 1.5 : 1;
+    pts = Math.round(pts * mult);
+    if (ok) correctCount++;
+    const before = score;
+    score += pts;
+
+    if (ok) { win(); if (streak >= 2) confetti(40); } else { lose(); $stage.classList.add('shake'); setTimeout(() => $stage.classList.remove('shake'), 400); }
+
+    const verdict = choice === null ? '⏰ Too slow!' : ok ? (R.type === 'guess' ? 'So close! 🎯' : ['Nailed it!', 'Big brain 🧠', 'Let’s gooo!'][i % 3]) : (R.type === 'guess' && pts > 0 ? 'Not quite 😬' : 'Oof. 💀');
+    setTimeout(() => {
+      const f = document.createElement('div');
+      f.className = 'flash ' + (ok ? 'ok' : 'no');
+      f.innerHTML = `<div class="box" role="dialog" aria-live="assertive">
+        <div class="verdict">${verdict}</div>
+        <div class="pts">+${pts.toLocaleString()} pts${mult > 1 ? ` <span style="color:var(--pink)">(🔥 x${mult})</span>` : ''}</div>
+        <div class="fact">${extra ? extra + '<br><br>' : ''}💡 ${R.fact}</div>
+        <button class="big" id="next">${i + 1 < ROUNDS.length ? 'Next round →' : 'See results 🏆'}</button>
+      </div>`;
+      document.body.appendChild(f);
+      const sc = document.getElementById('score');
+      if (sc) countUp(sc, before, score);
+      document.getElementById('next').focus();
+      document.getElementById('next').onclick = () => {
+        f.remove(); i++;
+        i < ROUNDS.length ? round() : end();
+      };
+    }, R.type === 'guess' ? 150 : 650);
+  }
+
+  function end() {
+    const board = [...RIVALS, ['You', score]].sort((a, b) => b[1] - a[1]);
+    const rank = board.findIndex((r) => r[0] === 'You') + 1;
+    $stage.innerHTML = `
+      <div class="end">
+        <h2>Final score</h2>
+        <div class="final" id="final">0</div>
+        <div class="badge">${correctCount}/${ROUNDS.length} correct · #${rank} on the board</div>
+        <div class="board" aria-label="Leaderboard">
+          ${board.map(([n, s], k) => `<div class="row ${n === 'You' ? 'you' : ''}"><span class="rk">${k + 1}</span><span>${n === 'You' ? '⭐ You' : n}</span><span>${s.toLocaleString()}</span></div>`).join('')}
+        </div>
+        <button class="big" id="again">Play again 🔁</button>
+        <button class="ghost" id="share">Challenge a friend 📲</button>
+        <p class="note">Mockup: leaderboard names are fake placeholders.</p>
+      </div>`;
+    countUp(document.getElementById('final'), 0, score, 1200);
+    confetti(120); win();
+    document.getElementById('again').onclick = intro;
+    document.getElementById('share').onclick = async () => {
+      const text = `I scored ${score.toLocaleString()} on Cash or Crash 💸 Bet you can’t beat me.`;
+      try { if (navigator.share) await navigator.share({ text }); else { await navigator.clipboard.writeText(text); alert('Copied!'); } } catch {}
+    };
+  }
+
+  intro();
+})();
+</script>
+</body>
+</html>

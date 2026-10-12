@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Team Dashboard — centsible.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .stage { max-width: 760px; gap: 14px; }
+  h1 { font-size: 34px; margin: 4px 0 0; line-height: 1.05; }
+  .src { font-size: 14px; }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .kpi { background: rgba(255,255,255,.07); border-radius: 16px; padding: 14px; }
+  .kpi b { display: block; font-size: 30px; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .kpi span { font-size: 13px; color: var(--muted); }
+  .kpi.hi b { color: var(--lime); }
+  .bars { display: grid; gap: 8px; }
+  .row { display: grid; grid-template-columns: minmax(90px, 30%) 1fr 64px; gap: 10px; align-items: center; font-size: 15px; }
+  .track { height: 16px; background: rgba(255,255,255,.08); border-radius: 5px; overflow: hidden; display: flex; }
+  .track i { display: block; height: 100%; background: var(--lime); }
+  .track i.l { background: var(--pink); }
+  .n { text-align: right; font-variant-numeric: tabular-nums; }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; font-variant-numeric: tabular-nums; }
+  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid rgba(255,255,255,.1); }
+  th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
+  td:not(:first-child), th:not(:first-child) { text-align: right; }
+  .legend { display: flex; gap: 14px; font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; }
+  .actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+  .scroll { overflow-x: auto; }
+  .links code { background: rgba(255,255,255,.08); padding: 2px 6px; border-radius: 6px; font-size: 13px; word-break: break-all; }
+</style>
+</head>
+<body>
+<main class="stage" id="stage">
+  <div class="topbar"><span class="brand">cent<span>sible.</span></span><a class="muted small" href="index.html" style="color:var(--muted)">Open the game →</a></div>
+  <h1>Team dashboard</h1>
+  <p class="muted src" id="srcNote">Loading…</p>
+  <div id="out"></div>
+</main>
+<script src="config.js"></script>
+<script src="content.js"></script>
+<script src="data.js"></script>
+<script>
+(async () => {
+  const C = window.CENTSIBLE_CONTENT;
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const pct = (a, b) => (b ? Math.round((a / b) * 100) + '%' : '—');
+  const avg = (a) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : null);
+
+  const { events, source } = await window.CentsibleData.fetchAll();
+  document.getElementById('srcNote').innerHTML = source === 'shared'
+    ? 'Showing <b>shared data from all devices</b>.'
+    : `Showing data from <b>this ${esc(source)}</b> only. Connect Supabase in <code>config.js</code> to combine every student’s results.`;
+
+  const visits = events.filter((e) => e.type === 'visit');
+  const starts = events.filter((e) => e.type === 'start');
+  const fins = events.filter((e) => e.type === 'finish');
+  const firsts = fins.filter((e) => !e.data.replay);
+  const quizzed = fins.filter((e) => e.data.pre != null && e.data.post != null);
+  const qLen = C.quiz.length;
+  const preAvg = avg(quizzed.map((e) => e.data.pre / (e.data.quizLen || qLen)));
+  const postAvg = avg(quizzed.map((e) => e.data.post / (e.data.quizLen || qLen)));
+  const improved = quizzed.filter((e) => e.data.post > e.data.pre).length;
+  const scoreAvg = avg(fins.map((e) => e.data.score));
+  const pp = (v) => (v == null ? '—' : Math.round(v * 100) + '%');
+
+  // Channels
+  const ch = {};
+  const bump = (src, k) => { ch[src] = ch[src] || { visits: 0, starts: 0, fins: 0 }; ch[src][k]++; };
+  visits.forEach((e) => bump(e.src, 'visits'));
+  starts.forEach((e) => bump(e.src, 'starts'));
+  fins.forEach((e) => bump(e.src, 'fins'));
+  const chRows = Object.entries(ch).sort((a, b) => b[1].visits - a[1].visits);
+
+  // Personalities
+  const pCount = {};
+  fins.forEach((e) => { pCount[e.data.personality] = (pCount[e.data.personality] || 0) + 1; });
+  const pMax = Math.max(1, ...Object.values(pCount));
+
+  // Choices
+  const choices = C.cards.filter((c) => !c.twist).map((c) => {
+    let l = 0, r = 0;
+    fins.forEach((e) => { const s = e.data.picks && e.data.picks[c.id]; if (s === 'L') l++; if (s === 'R') r++; });
+    return { c, l, r };
+  }).filter((x) => x.l + x.r > 0);
+
+
+  document.getElementById('out').innerHTML = `
+    <div class="kpis">
+      <div class="kpi"><b>${visits.length}</b><span>Visits</span></div>
+      <div class="kpi"><b>${starts.length}</b><span>Games started</span></div>
+      <div class="kpi"><b>${fins.length}</b><span>Games completed</span></div>
+      <div class="kpi"><b>${pct(fins.length, starts.length)}</b><span>Completion rate</span></div>
+      <div class="kpi"><b>${fins.length - firsts.length}</b><span>Replays</span></div>
+      <div class="kpi"><b>${scoreAvg == null ? '—' : Math.round(scoreAvg)}</b><span>Average score</span></div>
+      <div class="kpi"><b>${pp(preAvg)}</b><span>Quiz before (avg)</span></div>
+      <div class="kpi hi"><b>${pp(postAvg)}</b><span>Quiz after (avg)</span></div>
+      <div class="kpi hi"><b>${pct(improved, quizzed.length)}</b><span>Students who improved</span></div>
+    </div>
+
+    <div class="panel" style="margin-top:14px">
+      <h3>Marketing channels</h3>
+      <p class="muted small" style="margin:0 0 8px">Completed games ÷ visits shows which channel brings engaged players.</p>
+      <div class="scroll"><table>
+        <tr><th>Channel</th><th>Visits</th><th>Started</th><th>Completed</th><th>Conversion</th></tr>
+        ${chRows.map(([k, v]) => `<tr><td>${esc(k)}</td><td>${v.visits}</td><td>${v.starts}</td><td>${v.fins}</td><td>${pct(v.fins, v.visits)}</td></tr>`).join('') || '<tr><td colspan="5" class="muted">No data yet</td></tr>'}
+      </table></div>
+    </div>
+
+    <div class="panel" style="margin-top:14px">
+      <h3>What students chose</h3>
+      <div class="legend"><span><i style="background:var(--pink)"></i>Left choice</span><span><i style="background:var(--lime)"></i>Right choice</span></div>
+      <div class="bars">${choices.map(({ c, l, r }) => `
+        <div class="row"><span>${c.art} ${esc(c.id)}</span>
+          <span class="track" title="${esc(c.L.label)}: ${l} · ${esc(c.R.label)}: ${r}"><i class="l" style="width:${(l / (l + r)) * 100}%"></i><i style="width:${(r / (l + r)) * 100}%"></i></span>
+          <span class="n">${pct(r, l + r)} R</span></div>`).join('') || '<p class="muted">No games completed yet.</p>'}
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:14px">
+      <h3>Money personalities</h3>
+      <div class="bars">${C.personalities.map((p) => `
+        <div class="row"><span>${p.e} ${p.t}</span><span class="track"><i style="width:${((pCount[p.id] || 0) / pMax) * 100}%"></i></span><span class="n">${pCount[p.id] || 0}</span></div>`).join('')}
+      </div>
+    </div>
+
+    <div class="panel links" style="margin-top:14px">
+      <h3>Tracking links</h3>
+      <p class="muted small" style="margin:0 0 8px">Use a different link for each marketing channel so they show up separately above.</p>
+      ${['qr', 'popup', 'social', 'newsletter', 'announce'].map((s) => `<div style="margin:6px 0"><code>${esc(new URL('index.html?src=' + s, location.href).toString())}</code></div>`).join('')}
+    </div>
+
+    <div class="actions" style="margin-top:14px">
+      <button class="big" id="csv">Export results (CSV)</button>
+      <button class="ghost" id="clear">Clear this device’s data</button>
+    </div>`;
+
+  document.getElementById('csv').onclick = () => {
+    const cardIds = C.cards.filter((c) => !c.twist).map((c) => c.id);
+    const cols = ['time', 'channel', 'nickname', 'replay', 'pre', 'post', 'score', 'personality', 'debt', 'cash', 'grades', 'vibes', 'gameOver', 'seconds', ...cardIds.map((id) => 'pick_' + id)];
+    const rows = fins.map((e) => {
+      const d = e.data;
+      return [e.created_at, e.src, d.nick, d.replay, d.pre, d.post, d.score, d.personality, d.debt, d.cash, d.grades, d.vibes, d.broke || '', d.seconds,
+        ...cardIds.map((id) => (d.picks || {})[id] || '')];
+    });
+    const csv = [cols, ...rows].map((r) => r.map((v) => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    a.download = 'centsible-results.csv'; a.click();
+  };
+  document.getElementById('clear').onclick = () => {
+    if (confirm('Delete all Centsible data saved on this device? (Shared database data is not affected.)')) {
+      window.CentsibleData.clearLocal(); location.reload();
+    }
+  };
+})();
+</script>
+</body>
+</html>
