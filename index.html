@@ -3,46 +3,40 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#162B49">
 <title>centsible. — make cents of college</title>
 <meta name="description" content="Centsible: a DECA Project Management financial literacy project helping high schoolers understand tuition, loans, and budgeting.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&display=swap" rel="stylesheet">
 <style>
-  :root { --bg: #0f1d1a; --bg2: #13403a; --ink: #fff; --muted: #a9c2bb; --lime: #b6f36a; --sun: #ffd23f; --line: rgba(255,255,255,.1); }
+  :root { --navy: #162B49; --navy-2: #1E3A5F; --navy-3: #2B4C76; --mint: #6ED9B3; --mint-dark: #3FAE88; --cream: #F7F5EC; --gold: #EFCB75; --muted: #A8B7CB; }
   * { box-sizing: border-box; }
-  body {
-    margin: 0; min-height: 100vh; color: var(--ink);
-    background: radial-gradient(120% 70% at 50% 0%, var(--bg2), var(--bg) 70%) fixed, var(--bg);
-    font: 500 17px/1.45 "Bricolage Grotesque", system-ui, sans-serif;
-  }
+  body { margin: 0; min-height: 100vh; background: var(--navy); color: var(--cream); font: 500 17px/1.45 "Bricolage Grotesque", system-ui, sans-serif; }
   .wrap { max-width: 720px; margin: 0 auto; padding: 48px 16px 40px; }
-  .badge { display: inline-block; background: var(--sun); color: #1a1033; padding: 5px 12px; border-radius: 999px; font-weight: 800; font-size: 14px; transform: rotate(-2deg); }
+  .badge { display: inline-block; background: var(--gold); color: var(--navy); padding: 5px 12px; border-radius: 999px; font-weight: 800; font-size: 14px; }
   h1 { font-size: clamp(56px, 14vw, 88px); font-weight: 800; line-height: .95; letter-spacing: -.03em; margin: 14px 0 6px; }
-  h1 span { color: var(--lime); }
+  h1 span { color: var(--mint); }
   .tag { color: var(--muted); font-size: 20px; margin: 0 0 32px; }
-  .tag b { color: var(--sun); }
+  .tag b { color: var(--gold); }
   .hero {
-    display: block; text-decoration: none; color: #10301f; background: var(--lime);
-    border-radius: 22px; padding: 22px 22px 20px; box-shadow: 0 6px 0 #6fae2a; margin-bottom: 28px;
-    transition: transform .1s, box-shadow .1s;
+    display: flex; gap: 18px; align-items: center; text-decoration: none; color: var(--navy); background: var(--mint);
+    border-radius: 22px; padding: 22px; box-shadow: 0 6px 0 var(--mint-dark); margin-bottom: 28px; transition: transform .1s, box-shadow .1s;
   }
-  .hero:hover { transform: translateY(-2px); box-shadow: 0 8px 0 #6fae2a; }
-  .hero:active { transform: translateY(3px); box-shadow: 0 3px 0 #6fae2a; }
+  .hero:hover { transform: translateY(-2px); box-shadow: 0 8px 0 var(--mint-dark); }
+  .hero:active { transform: translateY(3px); box-shadow: 0 3px 0 var(--mint-dark); }
+  .hero .medal { width: 72px; height: 72px; border-radius: 50%; background: var(--navy); color: var(--mint); display: grid; place-items: center; flex: none; }
   .hero small { font-weight: 800; letter-spacing: .1em; text-transform: uppercase; font-size: 12px; opacity: .75; }
-  .hero b { display: block; font-size: 32px; font-weight: 800; line-height: 1.1; margin: 4px 0 6px; }
+  .hero b { display: block; font-size: 30px; font-weight: 800; line-height: 1.1; margin: 2px 0 6px; }
   h2 { font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; font-weight: 700; }
   .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-bottom: 28px; }
-  .tile {
-    display: block; text-decoration: none; color: var(--ink);
-    background: rgba(255,255,255,.06); border: 1px solid var(--line); border-radius: 18px; padding: 16px 18px;
-    transition: background .15s, transform .1s;
-  }
-  .tile:hover { background: rgba(255,255,255,.1); transform: translateY(-2px); }
-  .tile .ic { font-size: 26px; }
-  .tile b { display: block; font-size: 19px; margin: 6px 0 2px; }
-  .tile span { color: var(--muted); font-size: 15px; }
-  a:focus-visible { outline: 3px solid var(--sun); outline-offset: 3px; }
-  footer { border-top: 1px solid var(--line); padding-top: 16px; color: var(--muted); font-size: 14px; }
+  .tile { display: block; text-decoration: none; color: var(--cream); background: var(--navy-2); border: 1px solid var(--navy-3); border-radius: 18px; padding: 16px 18px; transition: background .15s, transform .1s; }
+  .tile:hover { background: var(--navy-3); transform: translateY(-2px); }
+  .tile .ic { color: var(--mint); display: block; }
+  .tile b { display: block; font-size: 19px; margin: 8px 0 2px; }
+  .tile span.d { color: var(--muted); font-size: 15px; }
+  a:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+  footer { border-top: 1px solid var(--navy-3); padding-top: 16px; color: var(--muted); font-size: 14px; }
+  @media (max-width: 480px) { .hero { flex-direction: column; align-items: flex-start; } }
 </style>
 </head>
 <body>
@@ -51,22 +45,32 @@
   <h1>cent<span>sible.</span></h1>
   <p class="tag">make <b>cents</b> of college.</p>
 
-  <a class="hero" href="version-2/">
-    <small>▶ Play the latest version</small>
-    <b>👆 Swipe Through College</b>
-    Swipe from senior year to your first job. Learn tuition, loans, and budgeting, and find your money personality.
+  <a class="hero" href="version-3/">
+    <span class="medal" data-icon="gradcap" data-size="40"></span>
+    <span>
+      <small>Play the latest version</small>
+      <b>Swipe Through College</b>
+      Make 10 real money decisions from senior year to your first job. Short lessons, quick math, and a Money Notebook teach tuition, loans, and budgeting.
+    </span>
   </a>
 
   <h2>For the team</h2>
   <div class="grid">
-    <a class="tile" href="project-document.html"><span class="ic">📋</span><b>Project document</b><span>Plan, schedule, roles, risks, and progress</span></a>
-    <a class="tile" href="version-2/dashboard.html"><span class="ic">📊</span><b>Team dashboard</b><span>Visits, quiz scores, channels, CSV export</span></a>
-    <a class="tile" href="mockups/"><span class="ic">🧪</span><b>Design mockups</b><span>Game-show quiz and swipe game prototypes</span></a>
-    <a class="tile" href="version-1/"><span class="ic">🗂️</span><b>Version 1</b><span>The first website: lessons and simulation</span></a>
-    <a class="tile" href="centsible.html"><span class="ic">📝</span><b>Original outline</b><span>The first project outline</span></a>
+    <a class="tile" href="project-document.html"><span class="ic" data-icon="notebook"></span><b>Project document</b><span class="d">Plan, schedule, roles, risks, and progress</span></a>
+    <a class="tile" href="version-3/dashboard.html"><span class="ic" data-icon="chart"></span><b>Team dashboard</b><span class="d">Learning results, channels, CSV export</span></a>
+    <a class="tile" href="mockups/"><span class="ic" data-icon="bulb"></span><b>Design mockups</b><span class="d">Game-show quiz and swipe game prototypes</span></a>
+    <a class="tile" href="version-2/"><span class="ic" data-icon="replay"></span><b>Version 2</b><span class="d">Previous swipe game</span></a>
+    <a class="tile" href="version-1/"><span class="ic" data-icon="replay"></span><b>Version 1</b><span class="d">The first website: lessons and simulation</span></a>
+    <a class="tile" href="centsible.html"><span class="ic" data-icon="form"></span><b>Original outline</b><span class="d">The first project outline</span></a>
   </div>
 
   <footer>Built by the centsible. team.</footer>
 </div>
+<script src="version-3/icons.js"></script>
+<script>
+  document.querySelectorAll('[data-icon]').forEach((el) => {
+    el.innerHTML = window.CentsibleIcons.svg(el.dataset.icon, { size: +(el.dataset.size || 26) });
+  });
+</script>
 </body>
 </html>

@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#162B49">
+<title>Team Dashboard — centsible.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .stage { max-width: 820px; gap: 14px; }
+  h1 { font-size: 34px; margin: 4px 0 0; line-height: 1.05; }
+  .top-link { color: var(--muted); font-size: 14px; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+  .top-link:hover { color: var(--cream); }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .kpi { background: var(--navy-2); border-radius: 16px; padding: 14px; }
+  .kpi b { display: block; font-size: 30px; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .kpi span { font-size: 13px; color: var(--muted); }
+  .kpi.hi b { color: var(--mint); }
+  .bars { display: grid; gap: 10px; }
+  .brow { display: grid; grid-template-columns: minmax(110px, 34%) 1fr 56px; gap: 10px; align-items: center; font-size: 15px; }
+  .brow .name { display: flex; align-items: center; gap: 8px; }
+  .brow .name .ico { color: var(--mint); }
+  .track { height: 14px; background: var(--navy-3); border-radius: 5px; overflow: hidden; display: flex; }
+  .track i { display: block; height: 100%; }
+  .n { text-align: right; font-variant-numeric: tabular-nums; }
+  .pair { display: grid; gap: 4px; }
+  .qrow { display: grid; gap: 6px; padding: 10px 0; border-bottom: 1px solid var(--navy-3); }
+  .qrow:last-child { border-bottom: 0; }
+  .qrow .q { font-size: 15px; }
+  .qbar { display: grid; grid-template-columns: 54px 1fr 44px; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; font-variant-numeric: tabular-nums; }
+  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--navy-3); }
+  th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
+  td:not(:first-child), th:not(:first-child) { text-align: right; }
+  .legend-d { display: flex; gap: 14px; font-size: 13px; color: var(--muted); margin-bottom: 10px; flex-wrap: wrap; }
+  .legend-d i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; }
+  .actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+  .scroll { overflow-x: auto; }
+  #out > * { min-width: 0; }
+  code { background: var(--navy); padding: 2px 6px; border-radius: 6px; font-size: 13px; word-break: break-all; }
+</style>
+</head>
+<body>
+<main class="stage" id="stage">
+  <div class="topbar"><span class="brand">cent<span>sible.</span></span><a class="top-link" href="index.html" id="gameLink">Open the game</a></div>
+  <h1>Team dashboard</h1>
+  <p class="muted small" id="srcNote" style="margin:0">Loading…</p>
+  <div id="out" style="display:grid;gap:14px"></div>
+</main>
+<script src="config.js"></script>
+<script src="content.js"></script>
+<script src="data.js"></script>
+<script src="icons.js"></script>
+<script>
+(async () => {
+  const C = window.CENTSIBLE_CONTENT;
+  const ic = (n, s = 20) => window.CentsibleIcons.svg(n, { size: s });
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const pct = (a, b) => (b ? Math.round((a / b) * 100) + '%' : '—');
+  const avg = (a) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : null);
+  const pp = (v) => (v == null ? '—' : Math.round(v * 100) + '%');
+  document.getElementById('gameLink').insertAdjacentHTML('beforeend', ic('arrowR', 16));
+
+  const { events: all, source } = await window.CentsibleData.fetchAll();
+  // A shared database may also hold v2 events; only count v3 here.
+  const events = all.filter((e) => e.data && e.data.v === 3);
+  document.getElementById('srcNote').innerHTML = source === 'shared'
+    ? 'Showing <b>shared data from all devices</b>.'
+    : `Showing data from <b>this ${esc(source)}</b> only. Connect Supabase in <code>config.js</code> to combine every student’s results.`;
+
+  const visits = events.filter((e) => e.type === 'visit');
+  const starts = events.filter((e) => e.type === 'start');
+  const fins = events.filter((e) => e.type === 'finish');
+  const firsts = fins.filter((e) => !e.data.replay);
+  const quizzed = fins.filter((e) => e.data.pre != null && e.data.post != null);
+  const qLen = C.quiz.length;
+  const preAvg = avg(quizzed.map((e) => e.data.pre / (e.data.quizLen || qLen)));
+  const postAvg = avg(quizzed.map((e) => e.data.post / (e.data.quizLen || qLen)));
+  const improved = quizzed.filter((e) => e.data.post > e.data.pre).length;
+  const scoreAvg = avg(fins.map((e) => e.data.score));
+  const termsAvg = avg(fins.map((e) => e.data.terms || 0));
+
+  const ch = {};
+  const bump = (src, k) => { ch[src] = ch[src] || { visits: 0, starts: 0, fins: 0 }; ch[src][k]++; };
+  visits.forEach((e) => bump(e.src, 'visits'));
+  starts.forEach((e) => bump(e.src, 'starts'));
+  fins.forEach((e) => bump(e.src, 'fins'));
+  const chRows = Object.entries(ch).sort((a, b) => b[1].visits - a[1].visits);
+
+  const perQ = C.quiz.map((q, i) => {
+    const withA = quizzed.filter((e) => e.data.preAnswers && e.data.postAnswers);
+    const pre = withA.filter((e) => e.data.preAnswers[i] === q.correct).length;
+    const post = withA.filter((e) => e.data.postAnswers[i] === q.correct).length;
+    return { q: q.q, pre: withA.length ? pre / withA.length : null, post: withA.length ? post / withA.length : null };
+  });
+
+  const pCount = {};
+  fins.forEach((e) => { pCount[e.data.personality] = (pCount[e.data.personality] || 0) + 1; });
+  const pMax = Math.max(1, ...Object.values(pCount));
+
+  const choices = C.cards.filter((c) => !c.twist).map((c) => {
+    let l = 0, r = 0;
+    fins.forEach((e) => { const s = e.data.picks && e.data.picks[c.id]; if (s === 'L') l++; if (s === 'R') r++; });
+    return { c, l, r };
+  }).filter((x) => x.l + x.r > 0);
+  const bestPct = ({ c, l, r }) => (c.best === 'L' ? l : c.best === 'R' ? r : null);
+
+  const qbar = (label, v, color) => `<div class="qbar"><span>${label}</span><span class="track"><i style="width:${(v || 0) * 100}%;background:${color}"></i></span><span class="n">${pp(v)}</span></div>`;
+
+  document.getElementById('out').innerHTML = `
+    <div class="kpis">
+      <div class="kpi"><b>${visits.length}</b><span>Visits</span></div>
+      <div class="kpi"><b>${starts.length}</b><span>Games started</span></div>
+      <div class="kpi"><b>${fins.length}</b><span>Games completed</span></div>
+      <div class="kpi"><b>${pct(fins.length, starts.length)}</b><span>Completion rate</span></div>
+      <div class="kpi"><b>${fins.length - firsts.length}</b><span>Replays</span></div>
+      <div class="kpi"><b>${scoreAvg == null ? '—' : Math.round(scoreAvg)}</b><span>Average score</span></div>
+      <div class="kpi"><b>${pp(preAvg)}</b><span>Quiz before (avg)</span></div>
+      <div class="kpi hi"><b>${pp(postAvg)}</b><span>Quiz after (avg)</span></div>
+      <div class="kpi hi"><b>${pct(improved, quizzed.length)}</b><span>Students who improved</span></div>
+      <div class="kpi"><b>${termsAvg == null ? '—' : termsAvg.toFixed(1)}</b><span>Money terms learned (avg)</span></div>
+    </div>
+
+    <div class="panel">
+      <h3>${ic('chart')} Learning by question</h3>
+      <p class="muted small" style="margin:-4px 0 6px">% of students who answered correctly before vs. after playing.</p>
+      ${perQ.map((x) => `<div class="qrow"><div class="q">${esc(x.q)}</div>${qbar('Before', x.pre, 'var(--gold)')}${qbar('After', x.post, 'var(--mint)')}</div>`).join('')}
+    </div>
+
+    <div class="panel">
+      <h3>${ic('share')} Marketing channels</h3>
+      <p class="muted small" style="margin:-4px 0 6px">Completed games ÷ visits shows which channel brings engaged players.</p>
+      <div class="scroll"><table>
+        <tr><th>Channel</th><th>Visits</th><th>Started</th><th>Completed</th><th>Conversion</th></tr>
+        ${chRows.map(([k, v]) => `<tr><td>${esc(k)}</td><td>${v.visits}</td><td>${v.starts}</td><td>${v.fins}</td><td>${pct(v.fins, v.visits)}</td></tr>`).join('') || '<tr><td colspan="5" class="muted">No data yet</td></tr>'}
+      </table></div>
+    </div>
+
+    <div class="panel">
+      <h3>${ic('check')} Smart choices by card</h3>
+      <div class="legend-d"><span><i style="background:var(--mint)"></i>Chose the smarter option</span><span><i style="background:var(--gold)"></i>Other option</span></div>
+      <div class="bars">${choices.map((x) => {
+        const best = bestPct(x), tot = x.l + x.r;
+        const good = best == null ? Math.max(x.l, x.r) : best;
+        return `<div class="brow"><span class="name">${ic(x.c.icon, 18)}${esc(x.c.id)}</span>
+          <span class="track" title="${esc(x.c.L.label)}: ${x.l} · ${esc(x.c.R.label)}: ${x.r}"><i style="width:${(good / tot) * 100}%;background:var(--mint)"></i><i style="width:${((tot - good) / tot) * 100}%;background:var(--gold)"></i></span>
+          <span class="n">${best == null ? '—' : pct(best, tot)}</span></div>`;
+      }).join('') || '<p class="muted">No games completed yet.</p>'}
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>${ic('user')} Money personalities</h3>
+      <div class="bars">${C.personalities.map((p) => `
+        <div class="brow"><span class="name">${ic(p.icon, 18)}${p.t}</span><span class="track"><i style="width:${((pCount[p.id] || 0) / pMax) * 100}%;background:var(--mint)"></i></span><span class="n">${pCount[p.id] || 0}</span></div>`).join('')}
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>${ic('link')} Tracking links</h3>
+      <p class="muted small" style="margin:-4px 0 8px">Use a different link for each channel so they show up separately above.</p>
+      ${['popup', 'social', 'newsletter', 'announce'].map((s) => `<div style="margin:6px 0"><code>${esc(new URL('index.html?src=' + s, location.href).toString())}</code></div>`).join('')}
+    </div>
+
+    <div class="actions">
+      <button class="btn" id="csv">Export results (CSV)</button>
+      <button class="btn quiet" id="clear">Clear this device’s data</button>
+    </div>`;
+
+  document.getElementById('csv').onclick = () => {
+    const cardIds = C.cards.filter((c) => !c.twist).map((c) => c.id);
+    const cols = ['time', 'channel', 'nickname', 'replay', 'pre', 'post', 'score', 'personality', 'debt', 'cash', 'grades', 'wellbeing', 'termsLearned', 'gameOver', 'seconds',
+      ...C.quiz.map((_, i) => `pre_q${i + 1}_correct`), ...C.quiz.map((_, i) => `post_q${i + 1}_correct`), ...cardIds.map((id) => 'pick_' + id)];
+    const rows = fins.map((e) => {
+      const d = e.data;
+      const qc = (arr, i) => (arr ? (arr[i] === C.quiz[i].correct ? 1 : 0) : '');
+      return [e.created_at, e.src, d.nick, d.replay, d.pre, d.post, d.score, d.personality, d.debt, d.cash, d.grades, d.wellbeing, d.terms, d.broke || '', d.seconds,
+        ...C.quiz.map((_, i) => qc(d.preAnswers, i)), ...C.quiz.map((_, i) => qc(d.postAnswers, i)), ...cardIds.map((id) => (d.picks || {})[id] || '')];
+    });
+    const csv = [cols, ...rows].map((r) => r.map((v) => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    a.download = 'centsible-v3-results.csv'; a.click();
+  };
+  document.getElementById('clear').onclick = () => {
+    if (confirm('Delete all Centsible data saved on this device? (Shared database data is not affected.)')) {
+      window.CentsibleData.clearLocal(); location.reload();
+    }
+  };
+})();
+</script>
+</body>
+</html>
