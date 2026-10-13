@@ -1,4 +1,4 @@
--- Centsible V4 — Supabase setup (run once in the Supabase SQL Editor).
+-- Centspire V4 — Supabase setup (run once in the Supabase SQL Editor).
 --
 -- Privacy model
 --   * The public (anon key) may INSERT events only. There is no SELECT policy, so nobody using the

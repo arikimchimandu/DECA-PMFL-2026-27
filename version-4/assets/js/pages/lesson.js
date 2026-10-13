@@ -9,7 +9,7 @@
     root.innerHTML = `<div class="container section"><div class="card empty"><h2>Lesson not found</h2><p>It may have moved.</p><a class="btn btn-primary" href="academy.html">Back to the Academy</a></div></div>`;
     return;
   }
-  document.title = `${L.title} — Centsible Academy`;
+  document.title = `${L.title} — Centspire Academy`;
   const P = C.Lessons.PATHWAYS.find((p) => p.id === L.pathway);
   const siblings = C.Lessons.LESSONS.filter((x) => x.pathway === L.pathway);
   const idx = siblings.indexOf(L);

@@ -1,4 +1,4 @@
-/* Centsible Academy hub: recommended lessons, pathways, and missions. */
+/* Centspire Academy hub: recommended lessons, pathways, and missions. */
 (function () {
   const C = window.Centsible, U = C.UI, M = C.Mastery;
   const { $, icon, esc, store } = U;
@@ -23,7 +23,7 @@
 
   $('#academy').innerHTML = `
     <section class="hero on-navy"><div class="container" style="padding-top:56px;padding-bottom:56px">
-      <p class="eyebrow" style="color:var(--gold)">Centsible Academy</p>
+      <p class="eyebrow" style="color:var(--gold)">Centspire Academy</p>
       <h1 style="max-width:20ch">Money skills, a few minutes at a time</h1>
       <p class="lead">${L.LESSONS.length} lessons in 5 pathways. Each takes 2–4 minutes and ends with questions that show what you’ve really learned.</p>
       <div class="row" style="margin-top:18px">

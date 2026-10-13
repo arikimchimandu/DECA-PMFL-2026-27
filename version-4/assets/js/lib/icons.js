@@ -1,4 +1,4 @@
-/* Centsible V4 — icon set (carried over from V3, extended).
+/* Centspire V4 — icon set (carried over from V3, extended).
  * Every icon is a list of SVG path strings on a 24×24 grid, drawn as 1.75px rounded strokes.
  * Paths only (no <circle>/<rect>) so the same data can be drawn on the share-image canvas.
  */

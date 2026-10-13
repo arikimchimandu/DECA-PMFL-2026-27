@@ -1,4 +1,4 @@
-/* Centsible V4 — the concept map that ties together questions, game decisions, lessons, and missions.
+/* Centspire V4 — the concept map that ties together questions, game decisions, lessons, and missions.
  * Every question, lesson, and mission is tagged with one or more of these concept IDs.
  */
 (function (root, factory) {

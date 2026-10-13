@@ -1,11 +1,11 @@
-# Centsible V4
+# Centspire V4
 
 **Make smarter money decisions before they become real ones.**
 
-Centsible is a free financial literacy web app for high school students, built for DECA Project Management – Financial Literacy (2026–27). It has two connected experiences:
+Centspire is a free financial literacy web app for high school students, built for DECA Project Management – Financial Literacy (2026–27). It has two connected experiences:
 
 1. **Financial Life Simulator** — a 10–15 minute, four-chapter branching journey (Senior Year → College Life → Independence → First Job) that ends in a personalized **Financial Future Report**.
-2. **Centsible Academy** — 15 short lessons in 5 pathways, weekly Money Missions, three Money Tools calculators, and a My Progress dashboard.
+2. **Centspire Academy** — 15 short lessons in 5 pathways, weekly Money Missions, three Money Tools calculators, and a My Progress dashboard.
 
 No account, name, or email is ever required.
 
@@ -123,4 +123,4 @@ Real-world figures, with sources listed in `assumptions.js` and on the About pag
 - 2026 federal tax brackets and the standard deduction (IRS Rev. Proc. 2025-32)
 - FICA rates
 
-**Before ICDC, have the financial reviewer confirm these, especially the 2026 tax figures.** All colleges, jobs and offers are hypothetical and labeled as such. Centsible is educational, not financial advice.
+**Before ICDC, have the financial reviewer confirm these, especially the 2026 tax figures.** All colleges, jobs and offers are hypothetical and labeled as such. Centspire is educational, not financial advice.

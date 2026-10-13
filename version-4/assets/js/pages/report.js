@@ -116,14 +116,14 @@
 
     ${!r.sample && !U.demo ? `<section class="card card-cream no-print" aria-labelledby="fb-h" id="feedback">
       <h3 id="fb-h">Optional: how helpful was this?</h3>
-      <p class="small muted">Anonymous. Helps our team improve Centsible. No written comments are collected.</p>
+      <p class="small muted">Anonymous. Helps our team improve Centspire. No written comments are collected.</p>
       <div class="chips" role="group" aria-label="Rating from 1 to 5">${[1, 2, 3, 4, 5].map((n) => `<button type="button" class="chip" data-r="${n}" aria-pressed="false">${n}${n === 1 ? ' · Not helpful' : n === 5 ? ' · Very helpful' : ''}</button>`).join('')}</div>
       <div class="field" style="margin-top:14px;max-width:360px"><label for="fb-topic">What did you learn the most about?</label>
         <select id="fb-topic" class="input"><option value="">Choose one (optional)</option>${TOPICS.map((t) => `<option value="${t.id}">${t.label}</option>`).join('')}</select></div>
       <button class="btn btn-navy btn-sm" id="fb-send" style="margin-top:14px" disabled>Send feedback</button>
     </section>` : ''}
 
-    <p class="disclaimer">Centsible is an educational simulation. All colleges, jobs, prices, and offers are hypothetical, and results are illustrations — not financial advice or guaranteed predictions. Taxes are simplified estimates. Talk to a school counselor or financial aid office about real decisions.</p>
+    <p class="disclaimer">Centspire is an educational simulation. All colleges, jobs, prices, and offers are hypothetical, and results are illustrations — not financial advice or guaranteed predictions. Taxes are simplified estimates. Talk to a school counselor or financial aid office about real decisions.</p>
   </div>`;
 
   $('#print').onclick = () => window.print();

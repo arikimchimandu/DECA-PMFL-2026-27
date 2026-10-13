@@ -1,4 +1,4 @@
-/* Centsible V4 — shared page shell and UI helpers (browser only). */
+/* Centspire V4 — shared page shell and UI helpers (browser only). */
 (function (root) {
   const C = root.Centsible;
   const F = C.Finance;
@@ -37,7 +37,7 @@
       header.innerHTML = `
         ${demo ? `<div class="demo-banner" role="note">Presentation demo mode — sample data only. Nothing is saved or recorded. <a href="?demo=0" style="color:inherit">Exit demo</a></div>` : ''}
         <div class="container bar">
-          <a class="brand" href="index.html" aria-label="Centsible home"><img class="brand-mark" src="../icons/logo.png" alt="" width="40" height="40"><b>cent<span>sible.</span></b></a>
+          <a class="brand" href="index.html" aria-label="Centspire home"><img class="brand-mark" src="../icons/logo.png" alt="" width="40" height="40"><b>cent<span>spire.</span></b></a>
           <button class="menu-btn" aria-expanded="false" aria-controls="site-nav">${icon('menu', 18)} Menu</button>
           <nav class="nav" id="site-nav" aria-label="Main">
             ${NAV.map(([id, label, href]) => `<a href="${href}"${id === page ? ' aria-current="page"' : ''}>${label}</a>`).join('')}
@@ -56,9 +56,9 @@
       footer.innerHTML = `
         <div class="container cols">
           <div style="max-width:420px">
-            <a class="brand" href="index.html"><img class="brand-mark" src="../icons/logo.png" alt="" width="40" height="40"><b>cent<span>sible.</span></b></a>
+            <a class="brand" href="index.html"><img class="brand-mark" src="../icons/logo.png" alt="" width="40" height="40"><b>cent<span>spire.</span></b></a>
             <p>Make smarter money decisions before they become real ones.</p>
-            <p class="small">An educational project for DECA Project Management – Financial Literacy, 2026–27. Centsible is a learning simulation, not financial advice. All colleges, jobs, and offers in the game are hypothetical examples.</p>
+            <p class="small">An educational project for DECA Project Management – Financial Literacy, 2026–27. Centspire is a learning simulation, not financial advice. All colleges, jobs, and offers in the game are hypothetical examples.</p>
           </div>
           <div>
             <p><b style="color:var(--cream)">Explore</b></p>

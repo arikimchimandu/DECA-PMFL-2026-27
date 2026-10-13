@@ -1,4 +1,4 @@
-/* Centsible V4 — privacy-conscious impact analytics.
+/* Centspire V4 — privacy-conscious impact analytics.
  *
  * What's collected: a random participant ID, the event type, the page, and small numeric data
  * (scores, counts, choices). Never names, emails, school IDs, or free-text comments.

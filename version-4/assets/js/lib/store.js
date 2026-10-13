@@ -1,4 +1,4 @@
-/* Centsible V4 — student progress saved in this browser (localStorage), with an in-memory
+/* Centspire V4 — student progress saved in this browser (localStorage), with an in-memory
  * fallback when storage is blocked (private mode, school-managed devices).
  * No names, emails, or school IDs are ever stored. The participant ID is a random code.
  */

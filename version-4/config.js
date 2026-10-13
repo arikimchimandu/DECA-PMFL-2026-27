@@ -1,4 +1,4 @@
-/* Centsible V4 — deployment settings.
+/* Centspire V4 — deployment settings.
  *
  * GitHub Pages has no server-side environment variables, so this file is the configuration.
  * To turn on shared impact data, create a Supabase project, run supabase/schema.sql, and paste:

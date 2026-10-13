@@ -113,7 +113,7 @@
       <div class="callout callout-gold">${icon('chart', 20)}<p>${replay ? 'You’ve played before. You can skip the knowledge checks this time and just explore a different path.' : 'You’ll start and finish with a quick 10-question knowledge check (about 2 minutes each). It’s not graded — it shows what you learned and personalizes your report.'}</p></div>
       ${replay ? `<label class="row small" style="margin-top:14px;gap:8px"><input type="checkbox" id="learn"> Take the knowledge checks again</label>` : ''}
       <div class="row" style="margin-top:20px"><button class="btn btn-primary" id="go">${icon('play', 18)} Start the simulation</button></div>
-      <p class="small muted" style="margin-top:14px">No account needed. Your progress saves in this browser. Centsible is a learning tool, not financial advice.</p>`);
+      <p class="small muted" style="margin-top:14px">No account needed. Your progress saves in this browser. Centspire is a learning tool, not financial advice.</p>`);
     $('#go').onclick = () => startNew(replay ? $('#learn').checked : true, U.params.get('preset'));
   }
 

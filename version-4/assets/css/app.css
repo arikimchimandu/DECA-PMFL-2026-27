@@ -1,4 +1,4 @@
-/* Centsible V4 — design system
+/* Centspire V4 — design system
    Palette: navy #162B49 · mint #6ED9B3 · cream #F7F5EC · gold #EFCB75
    Text on cream uses darker "ink" shades of mint/gold so contrast stays above WCAG AA. */
 :root {
@@ -207,8 +207,7 @@ input[type=range] { width: 100%; accent-color: var(--navy); height: 32px; }
 .hero h1 { max-width: 15ch; }
 .hero h1 em { font-style: normal; color: var(--mint); }
 .hero .lead { color: var(--muted-on-navy); }
-.hero-art { position: absolute; right: 24px; top: 56px; width: 420px; height: 420px; pointer-events: none; display: grid; place-items: center; border-radius: 50%; background: var(--cream); box-shadow: 0 0 0 18px var(--navy-2); }
-.hero-art img { width: 72%; height: auto; }
+.hero-art { position: absolute; right: -40px; top: 40px; width: 460px; height: 460px; pointer-events: none; opacity: .95; }
 @media (max-width: 1180px) { .hero-art { display: none; } }
 .hero .hero-text { max-width: 640px; }
 .entry { display: grid; gap: 14px; padding: 26px; border-radius: 22px; text-decoration: none; transition: transform .15s var(--ease), box-shadow .15s; }

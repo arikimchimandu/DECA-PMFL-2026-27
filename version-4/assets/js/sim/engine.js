@@ -1,4 +1,4 @@
-/* Centsible V4 — Financial Life Simulator engine (no DOM).
+/* Centspire V4 — Financial Life Simulator engine (no DOM).
  *
  * The game state is just the player's choices. `derive(choices)` rebuilds the whole financial
  * picture from those choices every time, so every later number follows from earlier decisions,

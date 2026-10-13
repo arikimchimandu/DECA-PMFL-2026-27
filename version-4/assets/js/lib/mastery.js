@@ -1,4 +1,4 @@
-/* Centsible V4 — learning scores and lesson recommendations.
+/* Centspire V4 — learning scores and lesson recommendations.
  *
  * Scores come only from answers to questions (assessments, in-game concept checks, lesson and
  * mission questions) — never from how much money a player ends with, and never from simply
@@ -147,7 +147,7 @@
     if (!strongest) return 'Answer a few more questions to see your strengths.';
     const top = scores[strongest].score;
     if (top < DEVELOPING) {
-      return `Every topic here is still new territory — that’s exactly what Centsible is for. A great place to start is ${T(weakest || strongest)}.`;
+      return `Every topic here is still new territory — that’s exactly what Centspire is for. A great place to start is ${T(weakest || strongest)}.`;
     }
     let s = top >= STRONG ? `You showed a strong understanding of ${T(strongest)}` : `Your strongest area so far is ${T(strongest)}`;
     if (weakest) {

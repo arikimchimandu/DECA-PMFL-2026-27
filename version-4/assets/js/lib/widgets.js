@@ -1,4 +1,4 @@
-/* Centsible V4 — interactive mini-calculators used in lessons, the simulator, and Money Tools.
+/* Centspire V4 — interactive mini-calculators used in lessons, the simulator, and Money Tools.
  * Widgets.mount(element, spec) renders one; spec.type picks which. All math comes from finance.js.
  */
 (function (root) {

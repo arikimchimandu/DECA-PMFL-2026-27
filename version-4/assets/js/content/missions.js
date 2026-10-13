@@ -1,4 +1,4 @@
-/* Centsible — Money Missions: short (3–5 minute) challenges.
+/* Centspire — Money Missions: short (3–5 minute) challenges.
  *
  * Mission shape:
  *   id, title, topic, concepts[], minutes, icon, intro

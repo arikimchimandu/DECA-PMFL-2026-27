@@ -29,7 +29,7 @@
     const p = s.paired || { n: 0, byTopic: {} };
     root.innerHTML = `
       <section class="hero on-navy"><div class="container" style="padding-top:48px;padding-bottom:40px">
-        <p class="eyebrow" style="color:var(--gold)">For the Centsible team</p>
+        <p class="eyebrow" style="color:var(--gold)">For the Centspire team</p>
         <h1 style="max-width:22ch">Impact dashboard</h1>
         <p class="lead">Are students actually learning? Paired before-and-after scores on equivalent question sets answer that.</p>
         <div class="row" style="margin-top:14px">

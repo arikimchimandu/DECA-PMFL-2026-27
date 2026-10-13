@@ -1,4 +1,4 @@
-/* Centsible V4 — builds the Financial Future Report from a finished game (no DOM).
+/* Centspire V4 — builds the Financial Future Report from a finished game (no DOM).
  * Learning scores come only from question responses (post-assessment + in-game checks).
  * Money results come from the simulator model and are illustrations, not predictions.
  */

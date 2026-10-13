@@ -16,7 +16,7 @@
 | Tradeoffs | Each card had a "best" side | Many decisions have no single right answer (housing, Parent PLUS, card use, co-signing, job offers). Lower cost is shown, but not called "correct". |
 | Assessment | Same 5 questions before and after | Two equivalent 10-item forms (A/B), randomly counterbalanced, aligned to 10 learning objectives across 5 topics, plus an optional 1-week retention check-in. |
 | Report | Personality card | A Financial Future Report with borrowing, payments, budget, emergency savings, flexibility, topic learning scores (from answers only), the most consequential decisions in dollars, and recommended lessons and a mission. It's saved and printable. |
-| Learning | Lesson pop-ups | Centsible Academy: 15 lessons in 5 pathways, each with an explanation, example, interactive activity and 2–3 questions with feedback. 5 Money Missions with a weekly rotation. |
+| Learning | Lesson pop-ups | Centspire Academy: 15 lessons in 5 pathways, each with an explanation, example, interactive activity and 2–3 questions with feedback. 5 Money Missions with a weekly rotation. |
 | Tools | — | Student loan, budget planner and savings growth calculators with validation, explanations and stated assumptions. |
 | Progress | — | My Progress: learning scores by topic, pathways, quiz history, areas to review, recommendations, missions, saved reports and reset. |
 | Personalization | — | Missed concepts and decision flags drive lesson recommendations. Passing requires correct first-try answers. |

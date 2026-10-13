@@ -30,7 +30,7 @@
     if (lastPost && !retention) {
       const due = lastPost.at + RETENTION_DAYS * 86400000;
       retentionHtml = Date.now() >= due
-        ? `<div class="callout callout-navy">${icon('clock', 20)}<div><p><b>Your one-week check-in is ready.</b> 10 quick questions (about 2 minutes) to see how much you remember. It helps our team measure whether Centsible works.</p><button class="btn btn-primary btn-sm" id="ret-go" style="margin-top:10px">Start the check-in</button></div></div><div id="ret-box"></div>`
+        ? `<div class="callout callout-navy">${icon('clock', 20)}<div><p><b>Your one-week check-in is ready.</b> 10 quick questions (about 2 minutes) to see how much you remember. It helps our team measure whether Centspire works.</p><button class="btn btn-primary btn-sm" id="ret-go" style="margin-top:10px">Start the check-in</button></div></div><div id="ret-box"></div>`
         : `<div class="callout callout-gold">${icon('clock', 20)}<p>A short one-week check-in unlocks on <b>${new Date(due).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}</b>. Come back then to see how much you remember.</p></div>`;
     } else if (retention) {
       retentionHtml = `<div class="callout callout-mint">${icon('check', 20)}<p>One-week check-in complete: <b>${retention.score}/${retention.total}</b>${lastPost ? ` (right after the game: ${lastPost.score}/${lastPost.total})` : ''}.</p></div>`;
@@ -107,7 +107,7 @@
         <section class="card card-cream" aria-labelledby="dc-h">
           <h2 id="dc-h" style="font-size:1.2rem">${icon('shield', 20)} Your data</h2>
           <p class="small">Your progress is stored only in this browser. If you clear your browser data or switch devices, it starts fresh. Anonymous participant code: <code>${esc(d.participant.slice(0, 8))}</code></p>
-          <div class="row"><button class="btn btn-ghost btn-sm" id="reset">${icon('replay', 16)} Reset all progress</button><a class="small" href="about.html#privacy">How Centsible handles data</a></div>
+          <div class="row"><button class="btn btn-ghost btn-sm" id="reset">${icon('replay', 16)} Reset all progress</button><a class="small" href="about.html#privacy">How Centspire handles data</a></div>
         </section>
       </div>`;
 

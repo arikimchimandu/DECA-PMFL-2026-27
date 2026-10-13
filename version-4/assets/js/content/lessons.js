@@ -1,4 +1,4 @@
-/* Centsible Academy — pathways and lessons.
+/* Centspire Academy — pathways and lessons.
  *
  * Lesson shape:
  *   id, pathway, order, topic, title, minutes, concepts[]  (concept IDs from concepts.js)

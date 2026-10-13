@@ -1,4 +1,4 @@
-/* Centsible V4 — pre/post assessment.
+/* Centspire V4 — pre/post assessment.
  *
  * Two equivalent forms (A and B). Item N on each form tests the same learning objective
  * at similar difficulty with different numbers or context, so improvement can be compared fairly.

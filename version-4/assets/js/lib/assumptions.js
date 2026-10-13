@@ -1,4 +1,4 @@
-/* Centsible V4 — every important number in one place.
+/* Centspire V4 — every important number in one place.
  *
  * Anything a student sees as a "real-world" figure comes from here, with its source.
  * Hypothetical game values are marked HYPOTHETICAL so nobody mistakes them for real offers.

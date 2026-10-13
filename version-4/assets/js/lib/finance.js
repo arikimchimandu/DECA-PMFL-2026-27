@@ -1,4 +1,4 @@
-/* Centsible V4 — financial math. Pure functions only (no DOM), so they can be tested.
+/* Centspire V4 — financial math. Pure functions only (no DOM), so they can be tested.
  * All rates are annual decimals (0.064 = 6.4%). Money is in dollars (not rounded unless noted).
  */
 (function (root, factory) {
