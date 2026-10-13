@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Centsible V4 Tests</title>
+<style>
+  body { font: 15px/1.5 system-ui, sans-serif; margin: 0; padding: 24px 16px; background: #F7F5EC; color: #162B49; }
+  main { max-width: 860px; margin: 0 auto; }
+  h1 { margin: 0 0 4px; } .sum { font-weight: 700; margin: 0 0 16px; }
+  li { padding: 4px 0; } .ok { color: #1F7A5C; } .fail { color: #A2412F; font-weight: 600; }
+  code { font-size: 13px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Centsible V4 — automated tests</h1>
+  <p class="sum" id="sum" role="status">Running…</p>
+  <ol id="out"></ol>
+</main>
+<script src="harness.js"></script>
+<script src="../assets/js/lib/assumptions.js"></script>
+<script src="../assets/js/lib/finance.js"></script>
+<script src="../assets/js/lib/store.js"></script>
+<script src="../assets/js/content/concepts.js"></script>
+<script src="../assets/js/content/assessments.js"></script>
+<script src="../assets/js/lib/mastery.js"></script>
+<script src="../assets/js/sim/engine.js"></script>
+<script src="../assets/js/sim/report-builder.js"></script>
+<script src="../assets/js/lib/analytics.js"></script>
+<script src="../assets/js/content/lessons.js"></script>
+<script src="../assets/js/content/missions.js"></script>
+<script src="finance.test.js"></script>
+<script src="engine.test.js"></script>
+<script src="learning.test.js"></script>
+<script src="content.test.js"></script>
+<script src="report.test.js"></script>
+<script>
+  CentsibleTest.run().then((results) => {
+    const failed = results.filter((r) => !r.ok);
+    document.getElementById('sum').textContent = `${results.length - failed.length} of ${results.length} tests passed${failed.length ? ` — ${failed.length} failed` : ''}`;
+    document.getElementById('sum').className = 'sum ' + (failed.length ? 'fail' : 'ok');
+    document.getElementById('out').innerHTML = results.map((r) => `<li class="${r.ok ? 'ok' : 'fail'}">${r.ok ? 'PASS' : 'FAIL'} — ${r.name}${r.ok ? '' : `<br><code>${r.error.replace(/</g, '&lt;')}</code>`}</li>`).join('');
+    window.__testResults = results;
+  });
+</script>
+</body>
+</html>
