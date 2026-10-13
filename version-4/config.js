@@ -8,8 +8,8 @@
  * Leave both blank and everything still works, with data saved on each device only.
  */
 window.CENTSIBLE_CONFIG = {
-  supabaseUrl: '',
-  supabaseAnonKey: '',
+  supabaseUrl: 'https://cqgejmzftifpiqsxpzdf.supabase.co',
+  supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxZ2VqbXpmdGlmcGlxc3hwemRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4OTA0MzUsImV4cCI6MjEwNzQ2NjQzNX0.553Xvh1DujB379-0AAXWmqgsrTzocvG_d-KLxYhjYiU', // anon (public) key — insert-only by design
   table: 'v4_events',
   summaryFunction: 'v4_impact_summary',
 };
