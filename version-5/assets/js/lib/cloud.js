@@ -1,12 +1,11 @@
 /* Centspire V5 — optional saving across devices (browser only).
  *
- * Two ways, both optional (progress always saves in this browser too):
- *   1. Save code — a random 12-character code (like K7QD-M2XA-9PTF). No email or name. Progress is
- *      stored in Supabase under that code through two database functions (v5_code_save / v5_code_load).
- *      Anyone with the code can load that progress, so it's a "password" students keep to themselves.
- *   2. Email sign-in — Supabase Auth sends a sign-in link (no password). Progress is stored in the
- *      v5_progress table, which row-level security limits to the signed-in student. Emails live only
- *      in Supabase Auth; they are never added to analytics events.
+ * Students: an optional save code — a random 12-character code (like K7QD-M2XA-9PTF). No email or name.
+ *   Progress is stored in Supabase under that code through two database functions (v5_code_save /
+ *   v5_code_load). Anyone with the code can load that progress, so students keep it to themselves.
+ *   Progress always saves in this browser too.
+ *
+ * Team only: email sign-in links (Supabase Auth) for the impact dashboard. Students never sign in.
  *
  * Needs the Supabase URL + anon key in config.js and supabase/schema.sql run once. See README.
  */
@@ -42,7 +41,7 @@
     return json;
   }
 
-  // ------------------------------------------------------------ email sign-in (Supabase Auth)
+  // ------------------------------------------------------------ team sign-in (Supabase Auth, impact dashboard only)
   const decodeJwt = (t) => { try { return JSON.parse(atob(t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))); } catch { return {}; } };
   function sessionFrom(tokens) {
     const claims = decodeJwt(tokens.access_token);
@@ -72,10 +71,8 @@
     const clean = String(email || '').trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean)) throw new CloudError('Enter a valid email address.');
     await call(`/auth/v1/otp?redirect_to=${encodeURIComponent(returnTo)}`, { body: { email: clean, create_user: true } });
-    try { root.localStorage.setItem(SESSION_KEY + '_pending', clean); } catch { /* ignore */ }
     return true;
   }
-  const pendingEmail = () => { try { return root.localStorage.getItem(SESSION_KEY + '_pending') || ''; } catch { return ''; } };
 
   /** If this page was opened from a sign-in link, save the session and clean the address bar. */
   function captureRedirect() {
@@ -89,41 +86,11 @@
     return { session: s };
   }
 
-  /** Some email templates show a 6-digit code instead of (or as well as) a link. */
-  async function verifyCode(email, code) {
-    const s = sessionFrom(await call('/auth/v1/verify', { body: { type: 'email', email: String(email).trim(), token: String(code).trim() } }));
-    setSession(s);
-    return s;
-  }
-
   async function signOut() {
     const s = getSession();
     setSession(null);
     if (s) { try { await call('/auth/v1/logout', { token: s.access_token }); } catch { /* already signed out */ } }
     emit();
-  }
-
-  async function pullAccount(s) {
-    const rows = await call('/rest/v1/v5_progress?select=data,updated_at', { method: 'GET', token: s.access_token });
-    return rows && rows[0] ? rows[0].data : null;
-  }
-  async function pushAccount(s, data) {
-    await call('/rest/v1/v5_progress?on_conflict=user_id', {
-      token: s.access_token, body: { user_id: s.user.id, data, updated_at: new Date().toISOString() },
-      extraHeaders: { Prefer: 'resolution=merge-duplicates,return=minimal' },
-    });
-  }
-
-  /** After signing in: combine this device's progress with the account's, then save both ways. */
-  async function afterSignIn() {
-    const s = await validSession();
-    if (!s || !store) return null;
-    const remote = await pullAccount(s);
-    if (remote) store.mergeIn(remote);
-    await pushAccount(s, store.get());
-    status.lastSync = Date.now(); status.error = null; emit();
-    C.Analytics.log('sync', store.get().participant, 'progress', { method: 'email', merged: !!remote });
-    return s;
   }
 
   // ------------------------------------------------------------ save codes
@@ -163,19 +130,17 @@
   async function syncNow() {
     if (!store || demo || !enabled()) return;
     const d = store.get();
-    const s = await validSession();
-    if (!d.saveCode && !s) return;
+    if (!d.saveCode) return;
     status.busy = true; emit();
     try {
-      if (d.saveCode) await call('/rest/v1/rpc/v5_code_save', { body: { p_code: d.saveCode, p_data: d } });
-      if (s) await pushAccount(s, d);
+      await call('/rest/v1/rpc/v5_code_save', { body: { p_code: d.saveCode, p_data: d } });
       status.lastSync = Date.now(); status.error = null;
     } catch (e) { status.error = e.message; }
     status.busy = false; emit();
   }
   function schedule() { clearTimeout(timer); timer = setTimeout(syncNow, 1500); }
 
-  /** Wrap the store so every change is also saved to the student's code/account (debounced). */
+  /** Wrap the store so every change is also saved to the student's save code (debounced). */
   function attach(s, { isDemo = false } = {}) {
     store = s; demo = isDemo;
     if (demo) return;
@@ -185,7 +150,7 @@
 
   C.Cloud = {
     enabled, attach, status, onChange: (fn) => { listeners.add(fn); return () => listeners.delete(fn); },
-    getSession, validSession, sendLink, pendingEmail, captureRedirect, verifyCode, signOut, afterSignIn,
+    getSession, validSession, sendLink, captureRedirect, signOut,
     createCode, loadCode, forgetCode, fmtCode, normCode, validCode, syncNow, CloudError,
   };
 })(window);

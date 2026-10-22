@@ -14,7 +14,7 @@
       byTopic: { college: { pre: 0.55, post: 0.84 }, budgeting: { pre: 0.68, post: 0.86 }, credit: { pre: 0.38, post: 0.71 }, saving: { pre: 0.57, post: 0.80 }, income: { pre: 0.42, post: 0.69 }, safety: { pre: 0.61, post: 0.90 } } },
     lessonsCompleted: 112, lessonParticipants: 29, lessonPassRate: 0.81, missionsCompleted: 38,
     feedback: { n: 33, avg: 4.4, npsN: 31, nps: 42, schoolN: 30, schoolYes: 0.7 }, retention: { n: 12, avg: 0.72, preAvg: 0.50 },
-    challenge: { n: 47, avg: 9420, over10k: 18 }, rewards: { claims: 21, accuracy: 9, score: 18, redeemed: 14 }, syncs: { code: 15, email: 6 },
+    challenge: { n: 47, avg: 9420, over10k: 18 }, rewards: { claims: 21, accuracy: 9, score: 18, redeemed: 14 }, syncs: { code: 21 },
   };
   const cfg = () => window.CENTSIBLE_CONFIG || {};
   let token = null;
@@ -112,7 +112,7 @@
           <div class="stat card"><span class="k">Want it at their school</span><span class="v">${pct(s.feedback && s.feedback.schoolYes)}</span><span class="s">${s.feedback ? s.feedback.schoolN || 0 : 0} answers · a sign of real demand</span></div>
           <div class="stat card"><span class="k">Average Challenge Score</span><span class="v">${s.challenge && s.challenge.avg != null ? Math.round(s.challenge.avg).toLocaleString('en-US') : '—'}</span><span class="s">${s.challenge ? s.challenge.over10k : 0} players scored over 10,000</span></div>
           <div class="stat card"><span class="k">Rewards earned</span><span class="v">${s.rewards ? s.rewards.claims : 0}</span><span class="s">${s.rewards ? s.rewards.accuracy : 0} accuracy · ${s.rewards ? s.rewards.score : 0} score${s.rewards && s.rewards.redeemed != null ? ` · ${s.rewards.redeemed} redeemed` : ''}</span></div>
-          <div class="stat card"><span class="k">Saved across devices</span><span class="v">${s.syncs ? s.syncs.code + s.syncs.email : 0}</span><span class="s">${s.syncs ? s.syncs.code : 0} save codes · ${s.syncs ? s.syncs.email : 0} email sign-ins</span></div>
+          <div class="stat card"><span class="k">Saved across devices</span><span class="v">${s.syncs ? s.syncs.code : 0}</span><span class="s">save codes created or loaded</span></div>
           <div class="stat card"><span class="k">Took the first check</span><span class="v">${s.preCount}</span></div>
           <div class="stat card"><span class="k">Took the final check</span><span class="v">${s.postCount}</span></div>
         </div>

@@ -71,19 +71,16 @@
           </div>
           <div>
             <p><b style="color:var(--cream)">Privacy</b></p>
-            <p class="small" style="max-width:260px">No account needed. Progress saves in this browser — or save it across devices with a code or your email on <a href="progress.html#sync">My Progress</a>. <a href="about.html#privacy">How we handle data</a></p>
+            <p class="small" style="max-width:260px">No account or email needed. Progress saves in this browser — or get a save code on <a href="progress.html#sync">My Progress</a> to continue on another device. <a href="about.html#privacy">How we handle data</a></p>
           </div>
         </div>`;
     }
     if (!demo) mountFeedbackBand();
-    // Returning from an email sign-in link?
+    // Returning from a team sign-in link (impact dashboard)?
     if (!demo && C.Cloud) {
       const r = C.Cloud.captureRedirect();
       if (r && r.error) toast('Sign-in link problem: ' + r.error);
-      else if (r && r.session) {
-        C.Cloud.afterSignIn().then(() => { toast('Signed in — your progress now saves to your account'); root.dispatchEvent(new Event('centspire:signin')); })
-          .catch((e) => toast(e.message || 'Signed in, but syncing failed. Try “Sync now” on My Progress.'));
-      }
+      else if (r && r.session) { toast('Signed in'); root.dispatchEvent(new Event('centspire:signin')); }
     }
     // Count one visit per day per participant (for returning-participant stats).
     if (!demo) {

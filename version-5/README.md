@@ -7,7 +7,7 @@ Centspire is a free financial literacy web app for high school students, built f
 1. **Financial Life Simulator** — a 10–15 minute, four-chapter branching journey (Senior Year → College Life → Independence → First Job) with a Challenge Score and rewards, ending in a personalized **Financial Future Report**.
 2. **Centspire Academy** — 19 short lessons in 6 pathways (including Scams & Digital Money), 7 Money Missions, four Money Tools calculators, and a My Progress dashboard.
 
-No account is required. Students can optionally save across devices with a save code (no email) or an email sign-in link. See [CHANGES.md](CHANGES.md) for what's new in V5.
+No account or email is required. Students can optionally save across devices with a save code. See [CHANGES.md](CHANGES.md) for what's new in V5.
 
 ---
 
@@ -57,9 +57,9 @@ V5 is plain static files, so GitHub Pages serves it as-is from the `main` branch
 
 After editing CSS or JS, bump the `?v=5.0.0` version in the HTML `<script>`/`<link>` tags so browsers load the new files.
 
-## Connecting Supabase (shared data, save codes, email sign-in, reward claims)
+## Connecting Supabase (shared data, save codes, team dashboard, reward claims)
 
-`config.js` already has the project URL and anon key. V5 uses **new tables**, so it needs one setup step before shared data, save codes, email sign-in, or claim checking work. Until then everything else works and data stays on each device.
+`config.js` already has the project URL and anon key. V5 uses **new tables**, so it needs one setup step before shared data, save codes, the team dashboard, or claim checking work. Until then everything else works and data stays on each device.
 
 1. Supabase → **SQL Editor** → paste and run [`supabase/schema.sql`](supabase/schema.sql). (V4's tables are left alone.)
 2. Add the three team emails — only these can open the impact dashboard and check claims:
@@ -70,15 +70,14 @@ After editing CSS or JS, bump the `?v=5.0.0` version in the HTML `<script>`/`<li
    ```sql
    select public.v5_set_team_pin('your-pin');
    ```
-4. **Authentication → URL Configuration → Redirect URLs:** add `https://arikimchimandu.github.io/DECA-PMFL-2026-27/**` (and `http://localhost:8000/**` for testing). Sign-in links only return to allowed addresses.
-5. **Email limits:** Supabase's built-in email service sends only a few emails per hour. Before a pop-up event, connect a free SMTP provider under **Authentication → Emails → SMTP Settings**, or point students to save codes, which don't use email.
-6. Sign in on `impact.html` with a team email and check that it says "Actual data from the shared database", and try **My Progress → Get a save code**.
+4. **Authentication → URL Configuration → Redirect URLs:** add `https://arikimchimandu.github.io/DECA-PMFL-2026-27/**` (and `http://localhost:8000/**` for testing). Team sign-in links (impact dashboard) only return to allowed addresses.
+5. Sign in on `impact.html` with a team email and check that it says "Actual data from the shared database", and try **My Progress → Get a save code**.
 
 **Privacy design:**
 - The public key can only *add* events; there's no read policy. Dashboard totals and claim checks only work for signed-in emails in `v5_team_members`.
 - Team pages (`impact.html`, `demo.html`, `tests/`) aren't linked from the public site and ask search engines not to index them. The repository is public, so the demo and tests pages are unlisted rather than secret — they contain no student data.
 - Save-code progress has no name or email and can only be loaded with the exact 12-character code.
-- Email sign-in progress is protected by row-level security (each student can only read their own row). Emails live only in Supabase Auth and are never written into events.
+- Students never sign in or give an email. Only team members sign in, and only for the dashboard.
 - **Never put the `service_role` key in this repository.**
 
 > The SQL follows standard Supabase conventions but hasn't been run against a live project yet. If a statement errors, copy the error message and fix that statement before going live.
@@ -104,7 +103,7 @@ version-5/
     store.js                   Progress saved in this browser (tested)
     analytics.js               Anonymous impact events + summaries (tested)
     rewards.js                 Challenge Score, accuracy, claim codes (tested)
-    cloud.js                   Save codes + email sign-in through Supabase
+    cloud.js                   Save codes + team sign-in through Supabase
     icons.js  ui.js  widgets.js  Shared UI, icon set, interactive calculators
   assets/js/content/           ← all student-facing text lives here
     assessments.js             Equivalent pre/post forms A and B
@@ -115,7 +114,7 @@ version-5/
     engine.js                  Branching simulator model (no UI; tested)
     report-builder.js          Financial Future Report logic (tested)
   assets/js/pages/             One small controller per page
-  supabase/schema.sql          Events, summary, save codes, email progress, claims
+  supabase/schema.sql          Events, team-only summary, save codes, claims
   tests/                       Browser/Node tests and link checker
 ```
 

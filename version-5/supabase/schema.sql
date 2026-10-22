@@ -6,15 +6,14 @@
 --   v5_events            anonymous learning events (insert-only for the public website)
 --   v5_impact_summary()  aggregate numbers for the team dashboard — TEAM ONLY (signed-in team emails)
 --   v5_saves + v5_code_save() / v5_code_load()   optional "save code" progress (no email or name)
---   v5_progress          optional email sign-in progress; each student can only read/write their own row
 --   v5_verify_claim() / v5_redeem_claim()        reward claim checking at the Centspire table — TEAM ONLY
 --   v5_team_members      the emails allowed to use the team dashboard
 --
 -- Privacy model
 --   * The public (anon key) can add events but never read them back.
 --   * Save-code progress can only be read by someone who has the exact 12-character code.
---   * Email sign-in progress is protected by row-level security (auth.uid() = user_id).
---   * Emails live only in Supabase Auth (auth.users). They are never copied into events or progress.
+--   * Students never sign in or give an email. Only the three team members sign in (Supabase Auth),
+--     and only to use the impact dashboard.
 --   * Never put the service_role key in the website. Only the anon (public) key belongs in config.js.
 --
 -- AFTER RUNNING THIS FILE (see README → "Connecting Supabase"):
@@ -24,8 +23,7 @@
 --        select public.v5_set_team_pin('0000');
 --   2. Authentication → URL Configuration: add your site to Redirect URLs, e.g.
 --        https://arikimchimandu.github.io/DECA-PMFL-2026-27/**
---   3. Authentication → Emails → SMTP: the built-in email service only sends a few emails per hour.
---      For a busy event, connect a free SMTP provider (Supabase docs: "Custom SMTP").
+--   3. Team sign-in emails use Supabase's built-in email service (a few emails per hour — plenty for 3 people).
 
 create extension if not exists pgcrypto with schema extensions;
 
@@ -157,8 +155,7 @@ select jsonb_build_object(
       'score',    (select count(*) from rewards where data->'rewards' ? 'score'),
       'redeemed', (select count(*) from public.v5_redemptions)),
   'syncs', jsonb_build_object(
-      'code',  (select count(*) from v5_events where type = 'sync' and data->>'method' = 'code'),
-      'email', (select count(*) from v5_events where type = 'sync' and data->>'method' = 'email')),
+      'code',  (select count(*) from v5_events where type = 'sync' and data->>'method' = 'code')),
   'retention', jsonb_build_object('n', (select count(*) from retention), 'avg', (select avg(ret_f) from retention), 'preAvg', (select avg(pre_f) from retention))
 );
 $$;
@@ -210,22 +207,6 @@ set search_path = public
 as $$
   select data from v5_saves where code = upper(regexp_replace(p_code, '[^A-Za-z0-9]', '', 'g'));
 $$;
-
--- ===================================================================== email sign-in progress
-create table if not exists public.v5_progress (
-  user_id     uuid primary key references auth.users (id) on delete cascade default auth.uid(),
-  data        jsonb not null check (pg_column_size(data) < 400000),
-  updated_at  timestamptz not null default now()
-);
-alter table public.v5_progress enable row level security;
-drop policy if exists "students read own progress" on public.v5_progress;
-drop policy if exists "students add own progress" on public.v5_progress;
-drop policy if exists "students update own progress" on public.v5_progress;
-create policy "students read own progress" on public.v5_progress for select to authenticated using (auth.uid() = user_id);
-create policy "students add own progress" on public.v5_progress for insert to authenticated with check (auth.uid() = user_id);
-create policy "students update own progress" on public.v5_progress for update to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
-revoke all on public.v5_progress from anon;
-grant select, insert, update on public.v5_progress to authenticated;
 
 -- ===================================================================== reward claims
 create table if not exists public.v5_team (

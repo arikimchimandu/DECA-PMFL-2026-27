@@ -2,7 +2,7 @@
  * fallback when storage is blocked (private mode, school-managed devices).
  * No names or school IDs are stored in progress. The participant ID is a random code.
  * V5 imports a student's V4 progress the first time, and can merge progress from two devices
- * (used by save codes and optional email sign-in — see cloud.js).
+ * (used by save codes — see cloud.js).
  */
 (function (root, factory) {
   const mod = factory(root);

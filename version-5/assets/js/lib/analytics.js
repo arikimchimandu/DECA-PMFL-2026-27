@@ -2,8 +2,7 @@
  *
  * What's collected: a random participant ID, the event type, the page, and small numeric data
  * (scores, counts, choices, ratings, reward claim codes). Never names, emails, school IDs, or
- * free-text comments. (Optional email sign-in is handled separately by Supabase Auth — see cloud.js —
- * and emails are never added to events.)
+ * free-text comments.
  *
  * Where it goes:
  *   - Always: this browser (localStorage), so a student's own device works offline.
@@ -103,7 +102,7 @@
       },
       challenge: { n: scores.length, avg: avg(scores), over10k: scores.filter((x) => x > 10000).length },
       rewards: { claims: rewards.length, accuracy: rewards.filter((e) => (e.data.rewards || []).includes('accuracy')).length, score: rewards.filter((e) => (e.data.rewards || []).includes('score')).length },
-      syncs: { code: by('sync').filter((e) => e.data.method === 'code').length, email: by('sync').filter((e) => e.data.method === 'email').length },
+      syncs: { code: by('sync').filter((e) => e.data.method === 'code').length },
       retention: { n: retIds.length, avg: avg(retIds.map((p) => frac(retention[p].data))), preAvg: avg(retIds.filter((p) => pre[p]).map((p) => frac(pre[p].data))) },
     };
   }

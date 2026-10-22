@@ -346,7 +346,7 @@
           <li>Scams &amp; Digital Money pathway (phishing, fake jobs, payment apps, identity theft, buy-now-pay-later, risky promotions) + a phishing decision in the simulator</li>
           <li>Car loans: senior-year car decision, lesson, mission, and calculator</li>
           <li>Challenge Score, rewards (100 credit points / $5 DQ coupon) with claim codes the team verifies</li>
-          <li>Optional save code or email sign-in to continue on any device</li>
+          <li>Optional save code (no email) to continue on any device</li>
           <li>Rating, Net Promoter Score, and "want it at school?" survey on every page</li>
           <li>UX polish: "Decision X of Y" progress, hover effects, clickable tool cards, "how this is calculated" notes, creator info</li>
           <li>99 automated tests passing</li>
@@ -362,7 +362,7 @@
           <tr><td>Financial literacy: checks accuracy</td><td>Annabelle's mom (bank)<br><span class="muted">Backup: Dia's dad</span></td><td class="fill">—</td><td class="fill">—</td><td class="fill">—</td></tr>
           <tr><td>Technical: reliability, usability, accessibility</td><td>Ari's dad, Dia's mom's friend</td><td class="fill">—</td><td class="fill">—</td><td class="fill">—</td></tr>
           <tr><td>UX review</td><td class="fill">Reviewer name</td><td>Oct 2026</td><td>Strong value proposition, no-account onboarding, and clear A/B choice. Suggested: progress indicator in the simulator, hover feedback, fully clickable tool cards, mobile check, notes on how calculators work, fuller footer.</td><td>All addressed in Version 5 (see version-5/CHANGES.md).</td></tr>
-          <tr><td>Feature feedback</td><td class="fill">Person 1</td><td>Oct 2026</td><td>Add email login to save progress, a rating/feedback loop, car loans, and rewards (&gt;95% correct → 100 credit points; score &gt;10,000 → $5 DQ coupon). Team added a scams &amp; digital money topic.</td><td>All built in Version 5. Rewards need school approval; email sign-in needs Supabase setup.</td></tr>
+          <tr><td>Feature feedback</td><td class="fill">Person 1</td><td>Oct 2026</td><td>Add email login to save progress, a rating/feedback loop, car loans, and rewards (&gt;95% correct → 100 credit points; score &gt;10,000 → $5 DQ coupon). Team added a scams &amp; digital money topic.</td><td>All built in Version 5; the team chose save codes instead of email sign-in for privacy. Rewards need school approval.</td></tr>
         </tbody>
       </table>
     </div>
@@ -487,7 +487,7 @@
             <td><span class="status done">Resolved</span></td>
           </tr>
           <tr><td>Oct 21, 2026</td><td>UX review: students may quit the 10–15 minute simulator without knowing how long is left; some cards only clickable on the text</td><td>Version 5 adds "Decision X of Y" with a progress bar and time left, hover feedback, and fully clickable tool cards</td><td><span class="status doing">Pending: student testing</span></td></tr>
-          <tr><td>Oct 21, 2026</td><td>Students lose progress when they switch devices; no way to measure how much students like it</td><td>Optional save codes and email sign-in; site-wide rating, Net Promoter Score, and "want it at school?" survey</td><td><span class="status doing">Pending: database setup</span></td></tr>
+          <tr><td>Oct 21, 2026</td><td>Students lose progress when they switch devices; no way to measure how much students like it</td><td>Optional save codes (no email); site-wide rating, Net Promoter Score, and "want it at school?" survey</td><td><span class="status doing">Pending: database setup</span></td></tr>
         </tbody>
       </table>
     </div>
@@ -568,8 +568,7 @@
           <tr><td>Choose hosting</td><td>Ari</td><td><span class="status done">Done: GitHub Pages</span></td></tr>
           <tr><td>Set up shared database (Supabase)</td><td>Ari</td><td><span class="status todo">Open</span></td></tr>
           <tr><td>Get school approval for pop-up event</td><td>Dia</td><td><span class="status todo">Open</span></td></tr>
-          <tr><td>Run <code>version-5/supabase/schema.sql</code>, set the team PIN, and add the site to Supabase redirect URLs</td><td>Ari</td><td><span class="status todo">Open</span></td></tr>
-          <tr><td>Set up custom email (SMTP) in Supabase before the pop-up so sign-in emails aren't rate-limited</td><td>Ari</td><td><span class="status todo">Open</span></td></tr>
+          <tr><td>Run <code>version-5/supabase/schema.sql</code>, add the 3 team emails, set the team PIN, and add the site to Supabase redirect URLs</td><td>Ari</td><td><span class="status todo">Open</span></td></tr>
           <tr><td>Get school approval for rewards (credit points, $5 DQ coupons) and budget for coupons</td><td>Dia</td><td><span class="status todo">Open</span></td></tr>
           <tr><td>Financial reviewer checks the new car and scam content (<code>version-5/assets/js/content/</code>)</td><td>Dia</td><td><span class="status todo">Open</span></td></tr>
         </tbody>
@@ -599,6 +598,7 @@
           <tr><td>Oct 13, 2026</td><td>Ari</td><td>Added the new Centsible logo: browser tab icon on every page, header and footer of Version 4, Version 4 home page, team home page, and this document.</td></tr>
           <tr><td>Oct 13, 2026</td><td>Ari</td><td>Renamed the website from Centsible to <b>Centspire</b>. Restored the original Version 4 home page art and removed the browser tab icons. The logo stays in the header and footer.</td></tr>
           <tr><td>Oct 21, 2026</td><td>Ari</td><td>Built Version 5 from UX review and reviewer feedback: scams &amp; digital money pathway, car loans, Challenge Score and rewards with claim codes, save codes and email sign-in, site-wide rating survey, and UX polish. Added V4/V5 to version history, reviewer feedback, controlling rows, and new to-dos.</td></tr>
+          <tr><td>Oct 21, 2026</td><td>Ari</td><td>Removed email sign-in for students; Version 5 saves across devices with save codes only. Team pages (impact dashboard, presenter demo, tests) unlinked from the public site; the impact dashboard now requires team sign-in.</td></tr>
         </tbody>
       </table>
     </div>

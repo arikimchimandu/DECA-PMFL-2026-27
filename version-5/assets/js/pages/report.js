@@ -75,7 +75,7 @@
 
   <div class="container section stack">
     ${rewardsHtml}
-    ${!r.sample && !U.demo && C.Cloud && C.Cloud.enabled() && !store.get().saveCode && !C.Cloud.getSession() ? `<div class="callout callout-navy no-print">${icon('shield', 20)}<p><b>Keep this report on any device.</b> Get a save code or sign in with email on <a href="progress.html#sync" style="color:var(--mint)">My Progress</a>.</p></div>` : ''}
+    ${!r.sample && !U.demo && C.Cloud && C.Cloud.enabled() && !store.get().saveCode ? `<div class="callout callout-navy no-print">${icon('shield', 20)}<p><b>Keep this report on any device.</b> Get a save code on <a href="progress.html#sync" style="color:var(--mint)">My Progress</a>.</p></div>` : ''}
     <section aria-labelledby="money-h">
       <p class="eyebrow">Your money picture</p>
       <h2 id="money-h">Where your choices led</h2>

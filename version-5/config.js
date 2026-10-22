@@ -1,7 +1,7 @@
 /* Centspire V5 — deployment settings.
  *
  * GitHub Pages has no server-side environment variables, so this file is the configuration.
- * Shared impact data, save codes, and email sign-in all use the Supabase project below.
+ * Shared impact data, save codes, and team sign-in for the impact dashboard all use the Supabase project below.
  * Before they work, run supabase/schema.sql once in the Supabase SQL Editor (see README).
  *   - supabaseAnonKey is the anon (public) key — safe to publish: the database only lets it add
  *     events and use the save-code functions; it can never read other students' records.

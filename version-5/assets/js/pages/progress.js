@@ -112,7 +112,7 @@
 
         <section class="card card-cream" aria-labelledby="dc-h">
           <h2 id="dc-h" style="font-size:1.2rem">${icon('shield', 20)} Your data</h2>
-          <p class="small">Your progress is stored in this browser${d.saveCode || (C.Cloud && C.Cloud.getSession()) ? ', and also saved to your save code or account' : '. If you clear your browser data or switch devices, it starts fresh unless you use a save code or sign in'}. Anonymous participant code: <code>${esc(d.participant.slice(0, 8))}</code>${d.importedFromV4 ? ' · Your Version 4 progress was brought over.' : ''}</p>
+          <p class="small">Your progress is stored in this browser${d.saveCode ? ', and also saved to your save code' : '. If you clear your browser data or switch devices, it starts fresh unless you use a save code'}. Anonymous participant code: <code>${esc(d.participant.slice(0, 8))}</code>${d.importedFromV4 ? ' · Your Version 4 progress was brought over.' : ''}</p>
           <div class="row"><button class="btn btn-ghost btn-sm" id="reset">${icon('replay', 16)} Reset all progress</button><a class="small" href="about.html#privacy">How Centspire handles data</a></div>
         </section>
       </div>`;
@@ -133,14 +133,13 @@
     const d = store.get();
     if (U.demo) { box.innerHTML = `<h2 id="sync-h" style="font-size:1.35rem">${icon('shield', 22)} Save across devices</h2><p class="muted">Not available in presentation demo mode.</p>`; return; }
     if (!Cl || !Cl.enabled()) { box.innerHTML = `<h2 id="sync-h" style="font-size:1.35rem">${icon('shield', 22)} Save across devices</h2><p class="muted">Saving across devices isn’t set up on this site yet. Your progress is still saved in this browser.</p>`; return; }
-    const sess = Cl.getSession();
     const st = Cl.status;
     box.innerHTML = `
       <h2 id="sync-h" style="font-size:1.35rem">${icon('shield', 22)} Save across devices</h2>
-      <p class="small muted">Optional. Pick up where you left off on a phone, a school Chromebook, or at home. Both options work at the same time.</p>
-      <div class="grid grid-2" style="margin-top:12px;align-items:start">
+      <p class="small muted">Optional. Pick up where you left off on a phone, a school Chromebook, or at home. No account or email needed.</p>
+      <div style="margin-top:12px;max-width:560px">
         <div class="card card-cream">
-          <h3 style="margin-top:0">${icon('lock', 18)} Save code <span class="tag tag-mint">No email needed</span></h3>
+          <h3 style="margin-top:0">${icon('lock', 18)} Save code</h3>
           ${d.saveCode ? `<p class="small" style="margin:0 0 6px">Your save code:</p><p class="claim-code" style="font-size:1.4rem">${esc(Cl.fmtCode(d.saveCode))}</p>
             <p class="small">Write it down or take a screenshot. Your progress saves to it automatically. Anyone with this code can open your progress, so keep it to yourself.</p>
             <div class="row"><button class="btn btn-ghost btn-sm" id="sc-copy">${icon('link', 16)} Copy code</button><button class="link-btn small" id="sc-forget">Stop using this code on this device</button></div>`
@@ -148,18 +147,6 @@
           <div class="field" style="margin-top:14px"><label for="sc-in">Have a code from another device?</label>
             <div class="row" style="gap:8px"><input class="input" id="sc-in" autocomplete="off" autocapitalize="characters" placeholder="XXXX-XXXX-XXXX" style="max-width:220px"><button class="btn btn-ghost btn-sm" id="sc-load">Load</button></div>
             <span class="error" id="sc-err" role="alert"></span></div>
-        </div>
-        <div class="card card-cream">
-          <h3 style="margin-top:0">${icon('mail', 18)} Sign in with email</h3>
-          ${sess ? `<p class="small" style="margin:0 0 10px">Signed in as <b>${esc(sess.user.email || 'your account')}</b>. Your progress syncs automatically.</p>
-              <div class="row"><button class="btn btn-ghost btn-sm" id="em-sync">${icon('replay', 16)} Sync now</button><button class="link-btn small" id="em-out">Sign out</button></div>`
-            : `<p class="small">We’ll email you a sign-in link — no password. Use your personal email if your school email blocks outside messages.</p>
-              <div class="field"><label for="em-in">Email</label><input class="input" id="em-in" type="email" autocomplete="email" value="${esc(Cl.pendingEmail())}" placeholder="you@example.com"></div>
-              <div class="row" style="margin-top:10px"><button class="btn btn-navy btn-sm" id="em-send">${icon('mail', 16)} Email me a sign-in link</button></div>
-              <details class="more" style="margin-top:10px"><summary class="small">Got a 6-digit code instead?</summary>
-                <div class="row" style="gap:8px;margin-top:8px"><input class="input" id="em-code" inputmode="numeric" autocomplete="one-time-code" placeholder="123456" style="max-width:140px"><button class="btn btn-ghost btn-sm" id="em-verify">Sign in</button></div></details>
-              <p class="small muted" style="margin:10px 0 0">Your email is used only to sign you in. It is never added to our learning data. Under 13? Ask a parent or guardian first.</p>`}
-          <span class="error" id="em-err" role="alert"></span>
         </div>
       </div>
       <p class="small muted" id="sync-status" style="margin:12px 0 0">${st.busy ? 'Saving…' : st.error ? `${icon('alert', 14)} ${esc(st.error)}` : st.lastSync ? `${icon('check', 14)} Saved ${new Date(st.lastSync).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}` : ''}</p>`;
@@ -176,19 +163,7 @@
       busy(btn, true);
       try { await Cl.loadCode(code); U.toast('Progress loaded and combined with this device'); render(); } catch (err) { busy(btn, false); fail('sc-err')(err); }
     });
-    on('em-send', async (btn) => {
-      busy(btn, true);
-      try { await Cl.sendLink($('#em-in').value, location.origin + location.pathname); $('#em-err').textContent = ''; btn.outerHTML = `<p class="small" style="margin:0">${icon('check', 16)} Check your inbox for a link from Supabase. Open it on <b>this</b> device to finish signing in.</p>`; }
-      catch (err) { busy(btn, false); fail('em-err')(err); }
-    });
-    on('em-verify', async (btn) => {
-      busy(btn, true);
-      try { await Cl.verifyCode($('#em-in').value, $('#em-code').value); await Cl.afterSignIn(); U.toast('Signed in'); render(); } catch (err) { busy(btn, false); fail('em-err')(err); }
-    });
-    on('em-sync', async (btn) => { busy(btn, true); try { await Cl.afterSignIn(); U.toast('Synced'); render(); } catch (err) { busy(btn, false); fail('em-err')(err); } });
-    on('em-out', async () => { await Cl.signOut(); U.toast('Signed out. Your progress stays in this browser.'); render(); });
   }
-  window.addEventListener('centspire:signin', () => render());
   if (C.Cloud) C.Cloud.onChange(() => { const el = $('#sync-status'); const st = C.Cloud.status; if (el) el.innerHTML = st.busy ? 'Saving…' : st.error ? `${icon('alert', 14)} ${esc(st.error)}` : st.lastSync ? `${icon('check', 14)} Saved ${new Date(st.lastSync).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}` : ''; });
 
   function runRetention(formId) {

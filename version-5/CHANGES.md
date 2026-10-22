@@ -17,7 +17,7 @@ V5 responds to two rounds of feedback: a UX review, and suggestions from a revie
 
 | Request | What V5 does |
 |---|---|
-| Save progress with email (plus anonymous) | **Optional email sign-in** (a sign-in link, no password) and a **save code** that needs no email. Both sync automatically. Anonymous use still works exactly as before. V4 progress is imported automatically. |
+| Save progress with email (plus anonymous) | The team chose a **save code** instead of email: a 12-character code (no email or name) that loads your progress on any device and syncs automatically. Anonymous use still works exactly as before. V4 progress is imported automatically. |
 | Feedback loop on rating and sellability | Site-wide **Rate Centspire** survey: star rating, likelihood to recommend (0–10, for Net Promoter Score), and "Would you want your school to use it?" The impact dashboard shows average rating, NPS, and school demand. |
 | Car loans | A senior-year **"Your first car?"** decision (no car, $4,000 cash car, or a financed $12,000 car at 11% for 6 years) that changes freshman borrowing, requires a college job, and carries into the first job (keep or sell). Plus a **car loans lesson**, a **First-Car Deal** mission, and a **car loan & real cost calculator**. |
 | Rewards: >95% correct → 100 credit points; total score >10,000 → $5 DQ coupon | **Challenge Score**: every decision earns 0–1,000 points, scaled to 13 decisions (out of 13,000). More than 95% of answers correct earns 100 credit points; a score over 10,000 earns the coupon. Rewards come with a **claim code** the team checks (and marks as given out) on the impact dashboard. Wording and thresholds are editable in `config.js`. |
@@ -32,4 +32,4 @@ V5 responds to two rounds of feedback: a UX review, and suggestions from a revie
 
 ## Data and setup
 
-V5 uses its own Supabase tables (`v5_events`, `v5_saves`, `v5_progress`, claims), so V4's data is untouched. Run `supabase/schema.sql` once — see README → "Connecting Supabase".
+V5 uses its own Supabase tables (`v5_events`, `v5_saves`, claims, team members), so V4's data is untouched. Run `supabase/schema.sql` once — see README → "Connecting Supabase".
