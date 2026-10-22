@@ -1,0 +1,262 @@
+-- Centspire V5 — Supabase setup. Run this whole file once in the Supabase SQL Editor.
+-- It's safe to run again (it uses "if not exists" / "create or replace").
+-- V4's tables (v4_events, v4_impact_summary) are left untouched.
+--
+-- What it creates
+--   v5_events            anonymous learning events (insert-only for the public website)
+--   v5_impact_summary()  aggregate numbers for the team dashboard (no individual records)
+--   v5_saves + v5_code_save() / v5_code_load()   optional "save code" progress (no email or name)
+--   v5_progress          optional email sign-in progress; each student can only read/write their own row
+--   v5_verify_claim() / v5_redeem_claim()        reward claim checking at the Centspire table
+--
+-- Privacy model
+--   * The public (anon key) can add events but never read them back.
+--   * Save-code progress can only be read by someone who has the exact 12-character code.
+--   * Email sign-in progress is protected by row-level security (auth.uid() = user_id).
+--   * Emails live only in Supabase Auth (auth.users). They are never copied into events or progress.
+--   * Never put the service_role key in the website. Only the anon (public) key belongs in config.js.
+--
+-- AFTER RUNNING THIS FILE (see README → "Connecting Supabase"):
+--   1. Set a team PIN for redeeming rewards (replace 0000 with your own PIN):
+--        select public.v5_set_team_pin('0000');
+--   2. Authentication → URL Configuration: add your site to Redirect URLs, e.g.
+--        https://arikimchimandu.github.io/DECA-PMFL-2026-27/**
+--   3. Authentication → Emails → SMTP: the built-in email service only sends a few emails per hour.
+--      For a busy event, connect a free SMTP provider (Supabase docs: "Custom SMTP").
+
+create extension if not exists pgcrypto with schema extensions;
+
+-- ===================================================================== events
+create table if not exists public.v5_events (
+  id          bigint generated always as identity primary key,
+  created_at  timestamptz not null default now(),
+  participant uuid not null,
+  type        text not null check (type in ('visit','sim_start','sim_complete','assessment','lesson_complete','mission_complete','feedback','reward','sync')),
+  page        text check (char_length(page) <= 40),
+  data        jsonb not null default '{}'::jsonb check (pg_column_size(data) < 4000)
+);
+create index if not exists v5_events_type_idx on public.v5_events (type);
+create index if not exists v5_events_participant_idx on public.v5_events (participant);
+create index if not exists v5_events_claim_idx on public.v5_events ((data->>'claim')) where type = 'reward';
+
+alter table public.v5_events enable row level security;
+drop policy if exists "public can add events" on public.v5_events;
+create policy "public can add events" on public.v5_events for insert to anon, authenticated with check (true);
+revoke select, update, delete on public.v5_events from anon, authenticated;
+
+-- Redeemed reward claims (created here because the summary below counts them)
+create table if not exists public.v5_redemptions (
+  claim        text primary key,
+  redeemed_at  timestamptz not null default now()
+);
+alter table public.v5_redemptions enable row level security;
+revoke all on public.v5_redemptions from anon, authenticated;
+
+-- ===================================================================== impact summary
+create or replace function public.v5_impact_summary()
+returns jsonb
+language sql
+stable
+security definer
+set search_path = public
+as $$
+with
+  topics(t) as (values ('college'), ('budgeting'), ('credit'), ('saving'), ('income'), ('safety')),
+  visit_days as (
+    select participant, count(distinct (created_at at time zone 'UTC')::date) as days
+    from v5_events where type = 'visit' group by participant
+  ),
+  latest as (
+    select distinct on (participant, data->>'phase') participant, data->>'phase' as phase, data
+    from v5_events where type = 'assessment'
+    order by participant, data->>'phase', created_at desc
+  ),
+  paired as (
+    select p.participant, p.data as pre, q.data as post
+    from latest p join latest q on q.participant = p.participant
+    where p.phase = 'pre' and q.phase = 'post'
+  ),
+  frac as (
+    select participant,
+      (pre->>'score')::numeric / nullif((pre->>'total')::numeric, 0) as pre_f,
+      (post->>'score')::numeric / nullif((post->>'total')::numeric, 0) as post_f
+    from paired
+  ),
+  by_topic as (
+    select t,
+      avg((pre->'byTopic'->t->>'correct')::numeric / nullif((pre->'byTopic'->t->>'total')::numeric, 0)) as pre,
+      avg((post->'byTopic'->t->>'correct')::numeric / nullif((post->'byTopic'->t->>'total')::numeric, 0)) as post
+    from paired cross join topics group by t
+  ),
+  retention as (
+    select r.participant,
+      (r.data->>'score')::numeric / nullif((r.data->>'total')::numeric, 0) as ret_f,
+      (p.data->>'score')::numeric / nullif((p.data->>'total')::numeric, 0) as pre_f
+    from latest r left join latest p on p.participant = r.participant and p.phase = 'pre'
+    where r.phase = 'retention'
+  ),
+  lessons as (select * from v5_events where type = 'lesson_complete'),
+  fb as (select data from v5_events where type = 'feedback'),
+  ratings as (select (data->>'rating')::numeric as rating from fb where (data->>'rating') ~ '^[1-5]$'),
+  nps as (select (data->>'nps')::int as v from fb where (data->>'nps') ~ '^([0-9]|10)$'),
+  school as (select data->>'school' as v from fb where data->>'school' in ('yes','maybe','no')),
+  sims as (select (data->>'challenge')::numeric as c from v5_events where type = 'sim_complete' and (data->>'challenge') ~ '^[0-9]+(\.[0-9]+)?$'),
+  rewards as (select data from v5_events where type = 'reward')
+select jsonb_build_object(
+  'participants',      (select count(distinct participant) from v5_events),
+  'returning',         (select count(*) from visit_days where days > 1),
+  'simStarts',         (select count(*) from v5_events where type = 'sim_start'),
+  'simCompletes',      (select count(*) from v5_events where type = 'sim_complete'),
+  'completionRate',    (select case when s = 0 then null else c::numeric / s end
+                        from (select count(*) filter (where type = 'sim_start') s,
+                                     count(*) filter (where type = 'sim_complete') c from v5_events) x),
+  'preCount',          (select count(*) from latest where phase = 'pre'),
+  'postCount',         (select count(*) from latest where phase = 'post'),
+  'paired', jsonb_build_object(
+      'n',        (select count(*) from frac),
+      'pre',      (select avg(pre_f) from frac),
+      'post',     (select avg(post_f) from frac),
+      'improved', (select count(*) from frac where post_f > pre_f),
+      'byTopic',  (select coalesce(jsonb_object_agg(t, jsonb_build_object('pre', pre, 'post', post)), '{}'::jsonb) from by_topic)),
+  'lessonsCompleted',   (select count(*) from lessons),
+  'lessonParticipants', (select count(distinct participant) from lessons),
+  'lessonPassRate',     (select avg(case when (data->>'passed')::boolean then 1 else 0 end) from lessons),
+  'missionsCompleted',  (select count(*) from v5_events where type = 'mission_complete'),
+  'feedback', jsonb_build_object(
+      'n',       (select count(*) from ratings),
+      'avg',     (select avg(rating) from ratings),
+      'npsN',    (select count(*) from nps),
+      'nps',     (select case when count(*) = 0 then null else round(100.0 * (count(*) filter (where v >= 9) - count(*) filter (where v <= 6)) / count(*)) end from nps),
+      'schoolN', (select count(*) from school),
+      'schoolYes', (select case when count(*) = 0 then null else (count(*) filter (where v = 'yes'))::numeric / count(*) end from school)),
+  'challenge', jsonb_build_object('n', (select count(*) from sims), 'avg', (select avg(c) from sims), 'over10k', (select count(*) from sims where c > 10000)),
+  'rewards', jsonb_build_object(
+      'claims',   (select count(*) from rewards),
+      'accuracy', (select count(*) from rewards where data->'rewards' ? 'accuracy'),
+      'score',    (select count(*) from rewards where data->'rewards' ? 'score'),
+      'redeemed', (select count(*) from public.v5_redemptions)),
+  'syncs', jsonb_build_object(
+      'code',  (select count(*) from v5_events where type = 'sync' and data->>'method' = 'code'),
+      'email', (select count(*) from v5_events where type = 'sync' and data->>'method' = 'email')),
+  'retention', jsonb_build_object('n', (select count(*) from retention), 'avg', (select avg(ret_f) from retention), 'preAvg', (select avg(pre_f) from retention))
+);
+$$;
+
+-- ===================================================================== save codes (no email)
+create table if not exists public.v5_saves (
+  code        text primary key check (code ~ '^[A-Z0-9]{12}$'),
+  data        jsonb not null check (pg_column_size(data) < 400000),
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+alter table public.v5_saves enable row level security;
+-- No policies: the website can only reach this table through the two functions below.
+revoke all on public.v5_saves from anon, authenticated;
+
+create or replace function public.v5_code_save(p_code text, p_data jsonb)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if p_code !~ '^[A-Z0-9]{12}$' then raise exception 'invalid code'; end if;
+  insert into v5_saves (code, data) values (p_code, p_data)
+  on conflict (code) do update set data = excluded.data, updated_at = now();
+  return true;
+end;
+$$;
+
+create or replace function public.v5_code_load(p_code text)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select data from v5_saves where code = upper(regexp_replace(p_code, '[^A-Za-z0-9]', '', 'g'));
+$$;
+
+-- ===================================================================== email sign-in progress
+create table if not exists public.v5_progress (
+  user_id     uuid primary key references auth.users (id) on delete cascade default auth.uid(),
+  data        jsonb not null check (pg_column_size(data) < 400000),
+  updated_at  timestamptz not null default now()
+);
+alter table public.v5_progress enable row level security;
+drop policy if exists "students read own progress" on public.v5_progress;
+drop policy if exists "students add own progress" on public.v5_progress;
+drop policy if exists "students update own progress" on public.v5_progress;
+create policy "students read own progress" on public.v5_progress for select to authenticated using (auth.uid() = user_id);
+create policy "students add own progress" on public.v5_progress for insert to authenticated with check (auth.uid() = user_id);
+create policy "students update own progress" on public.v5_progress for update to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
+revoke all on public.v5_progress from anon;
+grant select, insert, update on public.v5_progress to authenticated;
+
+-- ===================================================================== reward claims
+create table if not exists public.v5_team (
+  id        int primary key default 1 check (id = 1),
+  pin_hash  text not null
+);
+alter table public.v5_team enable row level security;
+revoke all on public.v5_team from anon, authenticated;
+
+-- Run once from the SQL Editor: select public.v5_set_team_pin('your-pin');
+create or replace function public.v5_set_team_pin(p_pin text)
+returns void
+language sql
+security definer
+set search_path = public, extensions
+as $$
+  insert into v5_team (id, pin_hash) values (1, extensions.crypt(p_pin, extensions.gen_salt('bf')))
+  on conflict (id) do update set pin_hash = excluded.pin_hash;
+$$;
+revoke all on function public.v5_set_team_pin(text) from public, anon, authenticated;
+
+create or replace function public.v5_verify_claim(p_claim text)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select coalesce(
+    (select jsonb_build_object('found', true, 'rewards', e.data->'rewards', 'score', e.data->'score', 'accuracy', e.data->'accuracy',
+            'created_at', e.created_at, 'redeemed', exists (select 1 from v5_redemptions r where r.claim = e.data->>'claim'))
+     from v5_events e where e.type = 'reward' and e.data->>'claim' = upper(trim(p_claim))
+     order by e.created_at desc limit 1),
+    jsonb_build_object('found', false));
+$$;
+
+create or replace function public.v5_redeem_claim(p_claim text, p_pin text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  ok boolean;
+  c text := upper(trim(p_claim));
+begin
+  select (pin_hash = extensions.crypt(p_pin, pin_hash)) into ok from v5_team where id = 1;
+  if ok is not true then return jsonb_build_object('ok', false, 'reason', 'wrong-pin'); end if;
+  if not exists (select 1 from v5_events where type = 'reward' and data->>'claim' = c) then
+    return jsonb_build_object('ok', false, 'reason', 'not-found');
+  end if;
+  insert into v5_redemptions (claim) values (c) on conflict (claim) do nothing;
+  if not found then return jsonb_build_object('ok', false, 'reason', 'already-redeemed'); end if;
+  return jsonb_build_object('ok', true);
+end;
+$$;
+
+-- ===================================================================== who can call what
+revoke all on function public.v5_impact_summary() from public;
+revoke all on function public.v5_code_save(text, jsonb) from public;
+revoke all on function public.v5_code_load(text) from public;
+revoke all on function public.v5_verify_claim(text) from public;
+revoke all on function public.v5_redeem_claim(text, text) from public;
+grant execute on function public.v5_impact_summary() to anon, authenticated;
+grant execute on function public.v5_code_save(text, jsonb) to anon, authenticated;
+grant execute on function public.v5_code_load(text) to anon, authenticated;
+grant execute on function public.v5_verify_claim(text) to anon, authenticated;
+grant execute on function public.v5_redeem_claim(text, text) to anon, authenticated;

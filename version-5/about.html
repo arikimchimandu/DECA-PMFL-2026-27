@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#162B49">
+<title>About — Centspire</title>
+<meta name="description" content="About the Centspire team, privacy, and sources.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/app.css?v=5.0.0">
+</head>
+<body data-page="about">
+<a class="skip-link" href="#main">Skip to main content</a>
+<header id="site-header"></header>
+<main id="main">
+  <section class="hero on-navy"><div class="container" style="padding-top:56px;padding-bottom:48px">
+    <p class="eyebrow" style="color:var(--gold)">About Centspire</p>
+    <h1 style="max-width:20ch">Built by students, for students</h1>
+    <p class="lead">Centspire helps high school students practice big money decisions — paying for college, budgeting, credit, cars, taxes, saving, and staying safe from scams — before those decisions are real.</p>
+  </div></section>
+  <div class="container section stack" style="max-width:900px">
+    <section class="card">
+      <h2>Why we built it</h2>
+      <p>The biggest financial decisions many of us will make — where to go to college and how to pay for it — happen at 17 or 18, often before anyone has explained how loans, interest, or a paycheck actually work. Centspire lets you try those decisions in a safe simulation, see what they cost, and learn the concepts behind them.</p>
+      <p>Centspire is our DECA Project Management – Financial Literacy project for 2026–27.</p>
+    </section>
+    <section class="card" id="team">
+      <h2>The team</h2>
+      <div class="grid grid-3" style="margin-top:12px">
+        <div class="card card-cream"><h3 style="margin-bottom:4px">Dia</h3><p class="small muted" style="margin:0">Coordinating Lead · Technology &amp; Curriculum</p></div>
+        <div class="card card-cream"><h3 style="margin-bottom:4px">Ari</h3><p class="small muted" style="margin:0">Technology &amp; Curriculum · Marketing &amp; Impact</p></div>
+        <div class="card card-cream"><h3 style="margin-bottom:4px">Sanskriti</h3><p class="small muted" style="margin:0">Marketing &amp; Impact Lead</p></div>
+      </div>
+    </section>
+    <section class="card">
+      <h2>How Centspire works</h2>
+      <ul>
+        <li><b>Financial Life Simulator</b> — a 10–15 minute journey through four chapters, from your first car and college offers to a phishing text and your first job. Every choice carries forward through one consistent money model.</li>
+        <li><b>Financial Future Report</b> — learning scores by topic (from your answers, not your in-game money), your Challenge Score and rewards, your most consequential decisions, and recommended lessons.</li>
+        <li><b>Centspire Academy</b> — 19 two-to-four-minute lessons in six pathways, including Scams &amp; Digital Money and car loans, each with an example, an interactive activity, and questions with explanations.</li>
+        <li><b>Money Missions and Money Tools</b> — short practice scenarios and calculators that explain their results.</li>
+      </ul>
+    </section>
+    <section class="card" id="rewards">
+      <h2>Rewards and Challenge Score</h2>
+      <ul>
+        <li>Each simulator decision earns up to 1,000 Challenge points for choices that keep cost, debt, and risk low. Paths have 13–18 decisions, so your total is scaled to 13 decisions (out of 13,000) to keep it fair.</li>
+        <li><b id="rw-acc"></b></li>
+        <li><b id="rw-score"></b></li>
+        <li>Rewards come with a claim code on your report. Show it at the Centspire table; our team checks each code once. One reward of each kind per student, while supplies last. Rewards are offered by the Centspire student team, not by DECA or any company named.</li>
+        <li>Points measure money choices in this game only. Real life has tradeoffs a score can’t see.</li>
+      </ul>
+    </section>
+    <section class="card" id="privacy">
+      <h2>Privacy</h2>
+      <ul>
+        <li>No account, name, or school ID is needed to use Centspire.</li>
+        <li>Your progress is saved in your browser. You can reset it anytime from <a href="progress.html">My Progress</a>.</li>
+        <li><b>Optional save code:</b> your progress (no name or email) is stored under a random code. Anyone with the code can load it, so keep it private.</li>
+        <li><b>Optional email sign-in:</b> your email is used only to send sign-in links, through our database provider (Supabase). It is never added to our learning data, and only you can read your saved progress. Under 13? Ask a parent or guardian first.</li>
+        <li>To measure whether Centspire works, the site may record anonymous events — a random code, which pages and lessons were completed, and quiz scores. No written comments are collected.</li>
+        <li>If our team connects a database, it is set up so the public website can only <i>add</i> anonymous events. Nobody can browse individual records through the site; our team dashboard only shows totals and averages.</li>
+      </ul>
+    </section>
+    <section class="card">
+      <h2>Accuracy and sources</h2>
+      <p>Figures such as federal loan rates, loan limits, tax brackets, and payroll taxes come from official sources and were current for the 2026–27 school year. Colleges, jobs, prices, and offers in the simulator are <b>hypothetical examples</b> for learning. Calculations use standard formulas and are checked by automated tests.</p>
+      <ul id="sources"></ul>
+      <p class="disclaimer">Centspire is an educational tool, not financial, tax, or legal advice. Talk to a school counselor, financial aid office, or qualified professional about your own situation.</p>
+    </section>
+    <section class="card card-cream">
+      <h2 style="font-size:1.2rem">For our team and presenters</h2>
+      <div class="row"><a class="btn btn-navy btn-sm" href="impact.html">Impact dashboard</a><a class="btn btn-ghost btn-sm" href="demo.html?demo=1">Presenter demo</a><a class="btn btn-ghost btn-sm" href="tests/">Automated tests</a></div>
+    </section>
+  </div>
+</main>
+<footer id="site-footer"></footer>
+
+<script src="config.js?v=5.0.0"></script>
+<script src="assets/js/lib/assumptions.js?v=5.0.0"></script>
+<script src="assets/js/lib/finance.js?v=5.0.0"></script>
+<script src="assets/js/lib/store.js?v=5.0.0"></script>
+<script src="assets/js/lib/analytics.js?v=5.0.0"></script>
+<script src="assets/js/lib/rewards.js?v=5.0.0"></script>
+<script src="assets/js/content/concepts.js?v=5.0.0"></script>
+<script src="assets/js/content/assessments.js?v=5.0.0"></script>
+<script src="assets/js/lib/mastery.js?v=5.0.0"></script>
+<script src="assets/js/content/lessons.js?v=5.0.0"></script>
+<script src="assets/js/content/missions.js?v=5.0.0"></script>
+<script src="assets/js/lib/icons.js?v=5.0.0"></script>
+<script src="assets/js/lib/cloud.js?v=5.0.0"></script>
+<script src="assets/js/lib/ui.js?v=5.0.0"></script>
+<script src="assets/js/lib/widgets.js?v=5.0.0"></script>
+<script src="assets/js/pages/about.js?v=5.0.0"></script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Centspire V5 Tests</title>
+<style>
+  body { font: 15px/1.5 system-ui, sans-serif; margin: 0; padding: 24px 16px; background: #F7F5EC; color: #162B49; }
+  main { max-width: 860px; margin: 0 auto; }
+  h1 { margin: 0 0 4px; } .sum { font-weight: 700; margin: 0 0 16px; }
+  li { padding: 4px 0; } .ok { color: #1F7A5C; } .fail { color: #A2412F; font-weight: 600; }
+  code { font-size: 13px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Centspire V5 — automated tests</h1>
+  <p class="sum" id="sum" role="status">Running…</p>
+  <ol id="out"></ol>
+</main>
+<script>
+  // Load every file fresh (no browser cache), in order, then run the tests.
+  const FILES = [
+    'harness.js',
+    '../assets/js/lib/assumptions.js',
+    '../assets/js/lib/finance.js',
+    '../assets/js/lib/store.js',
+    '../assets/js/content/concepts.js',
+    '../assets/js/content/assessments.js',
+    '../assets/js/lib/mastery.js',
+    '../assets/js/sim/engine.js',
+    '../assets/js/sim/report-builder.js',
+    '../assets/js/lib/analytics.js',
+    '../assets/js/lib/rewards.js',
+    '../assets/js/content/lessons.js',
+    '../assets/js/content/missions.js',
+    'finance.test.js',
+    'engine.test.js',
+    'learning.test.js',
+    'content.test.js',
+    'report.test.js',
+    'v5.test.js',
+  ];
+  const t = Date.now();
+  (async () => {
+    for (const f of FILES) {
+      await new Promise((ok, fail) => { const el = document.createElement('script'); el.src = f + '?t=' + t; el.onload = ok; el.onerror = () => fail(new Error('Could not load ' + f)); document.body.appendChild(el); });
+    }
+      CentsibleTest.run().then((results) => {
+        const failed = results.filter((r) => !r.ok);
+        document.getElementById('sum').textContent = `${results.length - failed.length} of ${results.length} tests passed${failed.length ? ` — ${failed.length} failed` : ''}`;
+        document.getElementById('sum').className = 'sum ' + (failed.length ? 'fail' : 'ok');
+        document.getElementById('out').innerHTML = results.map((r) => `<li class="${r.ok ? 'ok' : 'fail'}">${r.ok ? 'PASS' : 'FAIL'} — ${r.name}${r.ok ? '' : `<br><code>${r.error.replace(/</g, '&lt;')}</code>`}</li>`).join('');
+        window.__testResults = results;
+      });
+  })().catch((e) => { document.getElementById('sum').textContent = e.message; document.getElementById('sum').className = 'sum fail'; });
+</script>
+</body>
+</html>
