@@ -62,16 +62,21 @@ After editing CSS or JS, bump the `?v=5.0.0` version in the HTML `<script>`/`<li
 `config.js` already has the project URL and anon key. V5 uses **new tables**, so it needs one setup step before shared data, save codes, email sign-in, or claim checking work. Until then everything else works and data stays on each device.
 
 1. Supabase → **SQL Editor** → paste and run [`supabase/schema.sql`](supabase/schema.sql). (V4's tables are left alone.)
-2. Set the team PIN used to mark rewards as given out (pick your own PIN):
+2. Add the three team emails — only these can open the impact dashboard and check claims:
+   ```sql
+   insert into public.v5_team_members (email) values ('first@example.com'), ('second@example.com'), ('third@example.com');
+   ```
+3. Set the team PIN used to mark rewards as given out (pick your own PIN):
    ```sql
    select public.v5_set_team_pin('your-pin');
    ```
-3. **Authentication → URL Configuration → Redirect URLs:** add `https://arikimchimandu.github.io/DECA-PMFL-2026-27/**` (and `http://localhost:8000/**` for testing). Sign-in links only return to allowed addresses.
-4. **Email limits:** Supabase's built-in email service sends only a few emails per hour. Before a pop-up event, connect a free SMTP provider under **Authentication → Emails → SMTP Settings**, or point students to save codes, which don't use email.
-5. Push, then check that `impact.html` says "Actual data from the shared database", and try **My Progress → Get a save code**.
+4. **Authentication → URL Configuration → Redirect URLs:** add `https://arikimchimandu.github.io/DECA-PMFL-2026-27/**` (and `http://localhost:8000/**` for testing). Sign-in links only return to allowed addresses.
+5. **Email limits:** Supabase's built-in email service sends only a few emails per hour. Before a pop-up event, connect a free SMTP provider under **Authentication → Emails → SMTP Settings**, or point students to save codes, which don't use email.
+6. Sign in on `impact.html` with a team email and check that it says "Actual data from the shared database", and try **My Progress → Get a save code**.
 
 **Privacy design:**
-- The public key can only *add* events; there's no read policy. The dashboard reads totals through `v5_impact_summary()`.
+- The public key can only *add* events; there's no read policy. Dashboard totals and claim checks only work for signed-in emails in `v5_team_members`.
+- Team pages (`impact.html`, `demo.html`, `tests/`) aren't linked from the public site and ask search engines not to index them. The repository is public, so the demo and tests pages are unlisted rather than secret — they contain no student data.
 - Save-code progress has no name or email and can only be loaded with the exact 12-character code.
 - Email sign-in progress is protected by row-level security (each student can only read their own row). Emails live only in Supabase Auth and are never written into events.
 - **Never put the `service_role` key in this repository.**

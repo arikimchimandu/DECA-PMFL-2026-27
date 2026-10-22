@@ -17,22 +17,64 @@
     challenge: { n: 47, avg: 9420, over10k: 18 }, rewards: { claims: 21, accuracy: 9, score: 18, redeemed: 14 }, syncs: { code: 15, email: 6 },
   };
   const cfg = () => window.CENTSIBLE_CONFIG || {};
+  let token = null;
   async function rpc(name, body) {
-    const res = await fetch(`${cfg().supabaseUrl}/rest/v1/rpc/${name}`, { method: 'POST', headers: { apikey: cfg().supabaseAnonKey, Authorization: `Bearer ${cfg().supabaseAnonKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const res = await fetch(`${cfg().supabaseUrl}/rest/v1/rpc/${name}`, { method: 'POST', headers: { apikey: cfg().supabaseAnonKey, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    if (res.status === 401 || res.status === 403) throw new Error('Only signed-in team members can check claims.');
     if (!res.ok) throw new Error(res.status === 404 ? 'The V5 database setup hasn’t been run yet.' : 'Couldn’t reach the database (error ' + res.status + ').');
     return res.json();
   }
 
+  // Team-only gate: shown until a team member signs in (demo mode shows labeled fictional data instead).
+  function gate(reason) {
+    const sess = C.Cloud.getSession();
+    const msg = reason === 'not-team' ? `<div class="callout callout-coral">${icon('lock', 20)}<p><b>${esc(sess && sess.user.email || 'This account')}</b> isn’t on the team list. Ask Ari to add your email in Supabase (<code>v5_team_members</code>).</p></div>`
+      : reason === 'setup' ? `<div class="callout callout-gold">${icon('alert', 20)}<p>The V5 database setup hasn’t been run yet, so there’s no shared data to show.</p></div>`
+        : reason === 'offline' ? `<div class="callout callout-gold">${icon('alert', 20)}<p>Couldn’t reach the database. Check your connection and refresh.</p></div>` : '';
+    root.innerHTML = `
+      <section class="hero on-navy"><div class="container" style="padding-top:48px;padding-bottom:40px">
+        <p class="eyebrow" style="color:var(--gold)">${icon('lock', 16)} Team only</p>
+        <h1 style="max-width:22ch">Impact dashboard</h1>
+        <p class="lead">Sign in with your team email to see results and check reward claims.</p>
+      </div></section>
+      <div class="container section stack" style="max-width:640px">
+        ${msg}
+        <section class="card">
+          ${sess ? `<p>Signed in as <b>${esc(sess.user.email)}</b>.</p><button class="btn btn-ghost btn-sm" id="tm-out">Sign out</button>`
+            : `<div class="field"><label for="tm-email">Team email</label><input class="input" id="tm-email" type="email" autocomplete="email" placeholder="you@example.com"></div>
+              <button class="btn btn-navy btn-sm" id="tm-send" style="margin-top:10px">${icon('mail', 16)} Email me a sign-in link</button>
+              <p class="small muted" style="margin:10px 0 0">Open the link on this device. Only emails on the team list can see data.</p>`}
+          <p class="error" id="tm-err" role="alert"></p>
+        </section>
+        <p class="small muted">Presenting? <a href="?demo=1">Show labeled demo data</a> (fictional numbers, no sign-in needed).</p>
+      </div>`;
+    const send = $('#tm-send');
+    if (send) send.onclick = async () => {
+      send.disabled = true;
+      try { await C.Cloud.sendLink($('#tm-email').value, location.origin + location.pathname); send.outerHTML = `<p class="small">${icon('check', 16)} Check your inbox and open the link on this device.</p>`; }
+      catch (e) { send.disabled = false; $('#tm-err').textContent = e.message; }
+    };
+    const out = $('#tm-out');
+    if (out) out.onclick = async () => { await C.Cloud.signOut(); gate(); };
+  }
+  window.addEventListener('centspire:signin', () => render());
+
   let showDemo = U.demo;
 
   async function render() {
-    const real = await C.Analytics.summary();
+    let real = { source: 'device', data: null };
+    if (!showDemo) {
+      const sess = C.Analytics.remoteEnabled() ? await C.Cloud.validSession() : null;
+      token = sess ? sess.access_token : null;
+      real = await C.Analytics.summary({ token });
+      if (real.source === 'denied') return gate(real.reason === 'signin' ? null : real.reason);
+    }
     const s = showDemo ? DEMO : real.data;
     const label = showDemo
       ? `<div class="callout" style="background:var(--gold);color:var(--navy)">${icon('presentation', 22)}<p><b>DEMO DATA — fictional numbers for presentations.</b> These are not real participant results.</p></div>`
       : real.source === 'shared'
-        ? `<div class="callout callout-mint">${icon('shield', 22)}<p><b>Actual data</b> from the shared database (all devices), as aggregate totals only.</p></div>`
-        : `<div class="callout callout-gold">${icon('alert', 22)}<p><b>Actual data from this device only.</b> ${real.error ? esc(real.error) + ' ' : ''}Connect Supabase (see README) to combine results from every student’s device.</p></div>`;
+        ? `<div class="callout callout-mint">${icon('shield', 22)}<p><b>Actual data</b> from the shared database (all devices), as aggregate totals only. Team only.</p></div>`
+        : `<div class="callout callout-gold">${icon('alert', 22)}<p><b>Actual data from this device only.</b> Connect Supabase (see README) to combine results from every student’s device.</p></div>`;
     const p = s.paired || { n: 0, byTopic: {} };
     root.innerHTML = `
       <section class="hero on-navy"><div class="container" style="padding-top:48px;padding-bottom:40px">
@@ -42,6 +84,7 @@
         <div class="row" style="margin-top:14px">
           <button class="btn ${showDemo ? 'btn-ghost' : 'btn-primary'} btn-sm" data-mode="real" aria-pressed="${!showDemo}">Actual data</button>
           <button class="btn ${showDemo ? 'btn-gold' : 'btn-ghost'} btn-sm" data-mode="demo" aria-pressed="${showDemo}">Demo data</button>
+          ${token ? `<button class="btn btn-ghost btn-sm" id="tm-out2">Sign out</button>` : ''}
         </div>
       </div></section>
       <div class="container section stack">
@@ -94,6 +137,9 @@
         </section>
       </div>`;
     root.querySelectorAll('[data-mode]').forEach((b) => b.addEventListener('click', () => { showDemo = b.dataset.mode === 'demo'; render(); }));
+    const out2 = $('#tm-out2');
+    if (out2) out2.onclick = async () => { await C.Cloud.signOut(); token = null; render(); };
+    if (showDemo || !token) { const cl = $('#claims'); if (cl) cl.remove(); }
     const check = $('#cv-check');
     if (check) check.onclick = async () => {
       const code = $('#cv-code').value.trim().toUpperCase();

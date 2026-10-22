@@ -108,18 +108,22 @@
     };
   }
 
-  async function summary() {
+  /** Team dashboard totals. The shared summary is team-only: pass a signed-in team member's token. */
+  async function summary({ token } = {}) {
     if (remoteEnabled() && root.fetch) {
+      if (!token) return { source: 'denied', reason: 'signin' };
       try {
         const res = await root.fetch(`${cfg().supabaseUrl}/rest/v1/rpc/${cfg().summaryFunction || 'v5_impact_summary'}`, {
           method: 'POST',
-          headers: { apikey: cfg().supabaseAnonKey, Authorization: `Bearer ${cfg().supabaseAnonKey}`, 'Content-Type': 'application/json' },
+          headers: { apikey: cfg().supabaseAnonKey, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
           body: '{}',
         });
+        if (res.status === 401 || res.status === 403) return { source: 'denied', reason: 'not-team' };
+        if (res.status === 404) return { source: 'denied', reason: 'setup' };
         if (!res.ok) throw new Error('HTTP ' + res.status);
         return { source: 'shared', data: await res.json() };
       } catch (e) {
-        return { source: 'device', error: 'The shared database could not be reached, so this shows this device only.', data: summarize(localEvents()) };
+        return { source: 'denied', reason: 'offline' };
       }
     }
     return { source: 'device', data: summarize(localEvents()) };
