@@ -59,6 +59,26 @@
     assert.equal(s.lessonPassRate, 0.5);
     assert.equal(s.feedback.n, 1, 'out-of-range ratings are ignored');
   });
+  test('impact summary credits each student to the first link that brought them', () => {
+    const s = C.Analytics.summarize([
+      ev('a', 'visit', { src: 'popup', firstSrc: 'popup' }), ev('a', 'sim_start', { src: 'direct', firstSrc: 'popup' }), ev('a', 'sim_complete', { firstSrc: 'popup' }),
+      ev('b', 'visit', { src: 'instagram', firstSrc: 'instagram' }), ev('b', 'sim_start', { firstSrc: 'instagram' }),
+      ev('c', 'visit', {}),
+    ]);
+    assert.deepEqual(s.byChannel.popup, { participants: 1, simStarts: 1, simCompletes: 1 });
+    assert.deepEqual(s.byChannel.instagram, { participants: 1, simStarts: 1, simCompletes: 0 });
+    assert.equal(s.byChannel.direct.participants, 1);
+  });
+  test('impact summary averages 1–5 preparedness before and after, ignoring invalid values', () => {
+    const s = C.Analytics.summarize([
+      ev('a', 'assessment', { phase: 'pre', score: 5, total: 12, confidence: 2 }), ev('a', 'assessment', { phase: 'post', score: 9, total: 12, confidence: 4 }),
+      ev('b', 'assessment', { phase: 'pre', score: 5, total: 12, confidence: 3 }), ev('b', 'assessment', { phase: 'post', score: 7, total: 12, confidence: 9 }),
+      ev('c', 'assessment', { phase: 'pre', score: 5, total: 12, confidence: 1 }),
+    ]);
+    assert.approx(s.confidence.preAll, 2, 1e-9);
+    assert.approx(s.confidence.pre, 2.5, 1e-9);
+    assert.approx(s.confidence.post, 4, 1e-9, 'the out-of-range 9 is ignored');
+  });
   test('impact summary with no data returns empty values, not errors', () => {
     const s = C.Analytics.summarize([]);
     assert.equal(s.participants, 0);

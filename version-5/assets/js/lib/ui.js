@@ -14,6 +14,13 @@
   C.Analytics.setDemo(demo);
   const memory = () => { const m = new Map(); return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) }; };
   const store = demo ? C.Store.create(memory()) : C.Store.create();
+
+  // ---------- marketing channel: ?src=popup, ?src=instagram, ... ----------
+  const cleanSrc = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 24);
+  let src = cleanSrc(params.get('src'));
+  try { if (src) sessionStorage.setItem('centspire_src', src); else src = sessionStorage.getItem('centspire_src') || ''; } catch { /* storage blocked */ }
+  if (!demo && !store.get().firstSrc) store.update((d) => { d.firstSrc = src || 'direct'; });
+  C.Analytics.setContext({ src: src || 'direct', firstSrc: store.get().firstSrc || src || 'direct' });
   if (C.Cloud) C.Cloud.attach(store, { isDemo: demo });
   const team = () => ((root.CENTSIBLE_CONFIG || {}).team) || {};
 

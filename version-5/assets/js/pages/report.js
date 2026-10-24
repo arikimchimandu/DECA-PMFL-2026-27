@@ -112,7 +112,7 @@
             <div class="progress"><i style="width:${(v.score || 0) * 100}%;background:${v.level === 'review' ? 'var(--coral)' : v.level === 'developing' ? 'var(--gold)' : 'var(--mint)'}"></i></div>
             ${imp && imp.pre != null ? `<span class="small muted" style="grid-column:1/-1">Before: ${U.pct(imp.pre)} → After: ${U.pct(imp.post)}</span>` : ''}</div>`;
         }).join('')}
-        ${r.assessment.pre && r.assessment.post ? `<div class="callout callout-mint" style="margin-top:14px">${icon('trend', 20)}<p>Knowledge check: <b>${r.assessment.pre.score}/${r.assessment.pre.total}</b> before → <b>${r.assessment.post.score}/${r.assessment.post.total}</b> after (two different but equivalent question sets).</p></div>` : ''}
+        ${r.assessment.pre && r.assessment.post ? `<div class="callout callout-mint" style="margin-top:14px">${icon('trend', 20)}<p>Knowledge check: <b>${r.assessment.pre.score}/${r.assessment.pre.total}</b> before → <b>${r.assessment.post.score}/${r.assessment.post.total}</b> after (two different but equivalent question sets).${r.assessment.pre.confidence && r.assessment.post.confidence ? ` Your confidence went from <b>${r.assessment.pre.confidence}/5</b> to <b>${r.assessment.post.confidence}/5</b>.` : ''}</p></div>` : ''}
       </div>
       <div class="card" aria-labelledby="impact-h">
         <h3 id="impact-h">${icon('trend', 20)} Your most consequential decisions</h3>

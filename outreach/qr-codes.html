@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Centspire QR Codes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root { --navy: #162B49; --mint: #6ED9B3; --cream: #F7F5EC; --gold: #EFCB75; --muted: #5A6B82; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--cream); color: var(--navy); font: 15px/1.5 Inter, system-ui, sans-serif; }
+  main { max-width: 1000px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font: 800 2rem/1.1 "Bricolage Grotesque", sans-serif; margin: 0 0 6px; }
+  .note { color: var(--muted); max-width: 70ch; }
+  .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); margin-top: 24px; }
+  .card { background: #fff; border-radius: 16px; padding: 18px; text-align: center; box-shadow: 0 2px 10px rgba(22,43,73,.08); break-inside: avoid; }
+  .card h2 { font: 700 1.1rem/1.2 "Bricolage Grotesque", sans-serif; margin: 0 0 2px; }
+  .card .use { font-size: .82rem; color: var(--muted); margin: 0 0 12px; min-height: 2.4em; }
+  .qr { display: inline-block; padding: 10px; background: #fff; border: 2px solid var(--navy); border-radius: 12px; }
+  .qr img, .qr canvas { display: block; width: 168px; height: 168px; }
+  code { display: block; font-size: .7rem; word-break: break-all; color: var(--muted); margin-top: 10px; }
+  button { margin-top: 10px; font: 600 .85rem Inter, sans-serif; background: var(--navy); color: var(--cream); border: 0; border-radius: 10px; padding: 8px 12px; cursor: pointer; }
+  .bar { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+  .bar button { margin: 0; }
+  .warn { background: var(--gold); border-radius: 12px; padding: 10px 14px; margin-top: 16px; font-weight: 600; display: none; }
+  @media print { .bar, button, .note { display: none !important; } body { background: #fff; } .card { box-shadow: none; border: 1px solid #ddd; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Centspire tracking links &amp; QR codes</h1>
+  <p class="note">Each channel has its own link so the impact dashboard can show which outreach brought students in. Use the matching code for each place — don’t reuse one code everywhere. Print this page, or download a single code as an image.</p>
+  <div class="bar"><button onclick="window.print()">Print all codes</button></div>
+  <p class="warn" id="warn">The QR code library didn’t load (no internet?). The links below still work — reconnect and refresh to see the codes.</p>
+  <div class="grid" id="grid"></div>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+  const BASE = 'https://centspire.com/version-5/';
+  const CHANNELS = [
+    ['classroom', 'Classroom sessions', 'Projected on the board when visiting a class', 'simulator.html'],
+    ['popup', 'Lunch pop-up', 'Table tent / sign at the pop-up', 'simulator.html'],
+    ['poster', 'Hallway posters', 'Printed flyers around school', 'simulator.html'],
+    ['announce', 'Announcements', 'Read on the announcements / shown on school TVs', ''],
+    ['newsletter', 'Counseling newsletter', 'Link in the counselor or school newsletter', ''],
+    ['instagram', 'Instagram', 'Link in bio and story link stickers', ''],
+    ['tiktok', 'TikTok', 'Link in bio', ''],
+    ['groupchat', 'Group chats & clubs', 'DECA, FBLA, NHS, student council chats', ''],
+  ];
+  const grid = document.getElementById('grid');
+  const ok = typeof QRCode !== 'undefined';
+  if (!ok) document.getElementById('warn').style.display = 'block';
+  CHANNELS.forEach(([src, name, use, page]) => {
+    const url = `${BASE}${page}?src=${src}`;
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `<h2>${name}</h2><p class="use">${use}</p><div class="qr" id="qr-${src}"></div><code>${url}</code><button type="button">Download PNG</button>`;
+    grid.appendChild(card);
+    if (ok) new QRCode(document.getElementById('qr-' + src), { text: url, width: 336, height: 336, colorDark: '#162B49', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
+    card.querySelector('button').onclick = () => {
+      const c = card.querySelector('canvas'), img = card.querySelector('img');
+      const href = img && img.src.startsWith('data:') ? img.src : c ? c.toDataURL('image/png') : null;
+      if (!href) return alert('QR code not available offline.');
+      const a = document.createElement('a'); a.href = href; a.download = `centspire-qr-${src}.png`; a.click();
+    };
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Centspire Flyer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --navy: #162B49; --navy2: #1E3A5F; --mint: #6ED9B3; --cream: #F7F5EC; --gold: #EFCB75; --muted: #B4C2D6; }
+  * { box-sizing: border-box; }
+  @page { size: letter; margin: 0; }
+  body { margin: 0; background: #ddd; font: 16px/1.45 Inter, system-ui, sans-serif; }
+  .controls { max-width: 8.5in; margin: 16px auto; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; padding: 0 12px; }
+  .controls button, .controls select { font: 600 .9rem Inter, sans-serif; border-radius: 10px; padding: 8px 12px; border: 1px solid #999; background: #fff; }
+  .page { width: 8.5in; height: 11in; margin: 0 auto 24px; background: var(--navy); color: var(--cream); position: relative; overflow: hidden; padding: .7in .65in; display: flex; flex-direction: column; }
+  .blob1 { position: absolute; right: -1.2in; top: -1.1in; width: 4.2in; height: 4.2in; border-radius: 50%; background: var(--navy2); }
+  .blob2 { position: absolute; right: .5in; top: .6in; width: 1.6in; height: 1.6in; border-radius: 50%; background: var(--mint); }
+  .blob3 { position: absolute; left: -.9in; bottom: -1in; width: 3in; height: 3in; border-radius: 50%; background: var(--navy2); }
+  .brand { display: flex; align-items: center; gap: 10px; font: 800 30px/1 "Bricolage Grotesque", sans-serif; position: relative; }
+  .brand img { width: 46px; height: 46px; }
+  .brand span { color: var(--mint); }
+  .eyebrow { margin-top: .45in; font: 700 13px/1 Inter, sans-serif; letter-spacing: .14em; text-transform: uppercase; color: var(--gold); position: relative; }
+  h1 { font: 800 62px/0.98 "Bricolage Grotesque", sans-serif; letter-spacing: -.02em; margin: 12px 0 0; position: relative; max-width: 6.4in; }
+  h1 em { font-style: normal; color: var(--mint); }
+  .lead { font-size: 21px; color: var(--muted); max-width: 6in; margin: 18px 0 0; position: relative; }
+  .list { margin: .35in 0 0; display: grid; gap: 14px; position: relative; }
+  .item { display: flex; gap: 14px; align-items: flex-start; font-size: 19px; }
+  .dot { flex: none; width: 34px; height: 34px; border-radius: 50%; background: var(--gold); color: var(--navy); font: 800 17px/34px "Bricolage Grotesque", sans-serif; text-align: center; }
+  .item b { color: #fff; }
+  .scan { margin-top: auto; display: flex; gap: 26px; align-items: center; background: var(--cream); color: var(--navy); border-radius: 26px; padding: 24px; position: relative; }
+  .qr { flex: none; background: #fff; padding: 10px; border-radius: 14px; border: 3px solid var(--navy); }
+  .qr img, .qr canvas { display: block; width: 2.1in; height: 2.1in; }
+  .scan h2 { font: 800 34px/1.05 "Bricolage Grotesque", sans-serif; margin: 0 0 6px; }
+  .scan p { margin: 0 0 6px; font-size: 16px; color: #33445E; }
+  .scan .meta { font-weight: 700; color: var(--navy); }
+  .foot { font-size: 11px; color: var(--muted); margin-top: 14px; position: relative; }
+  @media print { body { background: none; } .controls { display: none; } .page { margin: 0; } }
+</style>
+</head>
+<body>
+<div class="controls">
+  <label>Channel for this printout:
+    <select id="src">
+      <option value="poster">Hallway poster</option>
+      <option value="popup">Lunch pop-up</option>
+      <option value="classroom">Classroom</option>
+      <option value="newsletter">Newsletter</option>
+    </select></label>
+  <button onclick="window.print()">Print (8.5 × 11)</button>
+  <span style="font-size:.85rem">Tip: in the print dialog, turn on “Background graphics”.</span>
+</div>
+<div class="page">
+  <div class="blob1"></div><div class="blob2"></div><div class="blob3"></div>
+  <div class="brand"><img src="../icons/logo.png" alt=""><div>cent<span>spire.</span></div></div>
+  <p class="eyebrow">Free · No account · Built by students at your school</p>
+  <h1>What would your money look like <em>at 22?</em></h1>
+  <p class="lead">Pick a college, survive a surprise bill, get your first credit card, land your first job — and see where your choices lead.</p>
+  <div class="list">
+    <div class="item"><span class="dot">1</span><span><b>Play the 10-minute simulator.</b> Every choice carries forward, from senior year to your first paycheck.</span></div>
+    <div class="item"><span class="dot">2</span><span><b>Get your Financial Future Report.</b> See your debt, your budget, and your strongest money skills.</span></div>
+    <div class="item"><span class="dot">3</span><span><b>Learn what actually matters</b> — loans, credit, taxes, and saving — in 3-minute lessons.</span></div>
+  </div>
+  <div class="scan">
+    <div class="qr" id="qr"></div>
+    <div>
+      <h2>Scan to start playing</h2>
+      <p>Works on any phone. No sign-up, no names collected.</p>
+      <p class="meta">About 10–15 minutes</p>
+    </div>
+  </div>
+  <p class="foot">Centspire is a DECA Financial Literacy project. Educational simulation — not financial advice. All colleges and jobs in the game are hypothetical.</p>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+  const BASE = 'https://centspire.com/version-5/simulator.html?src=';
+  const sel = document.getElementById('src');
+  const params = new URLSearchParams(location.search);
+  if (params.get('src')) sel.value = params.get('src');
+  function draw() {
+    const box = document.getElementById('qr');
+    box.innerHTML = '';
+    if (typeof QRCode === 'undefined') { box.textContent = BASE + sel.value; box.style.cssText += ';width:2.1in;font-size:10px;word-break:break-all'; return; }
+    new QRCode(box, { text: BASE + sel.value, width: 420, height: 420, colorDark: '#162B49', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
+  }
+  sel.onchange = draw;
+  draw();
+</script>
+</body>
+</html>

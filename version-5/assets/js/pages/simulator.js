@@ -131,8 +131,19 @@
       <p class="small" style="margin:6px 0 0"><a href="about.html#rewards">Reward rules</a></p></div></div>`;
   }
 
+  const CONF_LABELS = ['Not at all prepared', 'A little prepared', 'Somewhat prepared', 'Prepared', 'Very prepared'];
+  function confidenceScreen() {
+    const Q = S.quiz, pre = Q.kind === 'pre';
+    card(`<p class="eyebrow">${pre ? 'Before you start' : 'One last thing'}</p>
+      <h2>${pre ? 'How prepared do you feel' : 'Now, how prepared do you feel'} to manage college costs and your own money?</h2>
+      <p class="scene">Rate yourself from 1 to 5. There’s no wrong answer.</p>
+      <div class="options" role="group" aria-label="Preparedness from 1 to 5">${CONF_LABELS.map((l, k) => `<button type="button" class="option" data-v="${k + 1}"><span class="medal medal-${k < 2 ? 'cream' : k < 4 ? 'gold' : 'mint'}" style="font-weight:800">${k + 1}</span><span><span class="t">${l}</span></span></button>`).join('')}</div>`);
+    stage.querySelectorAll('[data-v]').forEach((b) => b.addEventListener('click', () => { Q.confidence = +b.dataset.v; save(); quizScreen(); }));
+  }
+
   function quizScreen() {
     const Q = S.quiz, form = C.Assessments.forms[Q.form], i = Q.answers.length;
+    if (Q.confidence == null && i === 0) return confidenceScreen();
     const pre = Q.kind === 'pre';
     card(`<p class="eyebrow">${pre ? 'Before you start' : 'Final knowledge check'} · Question ${i + 1} of ${form.length}</p>
       <div class="progress" style="margin-bottom:18px"><i style="width:${(i / form.length) * 100}%"></i></div>
@@ -150,9 +161,10 @@
   function finishQuiz() {
     const Q = S.quiz;
     const result = M.scoreAssessment(Q.form, Q.answers);
+    result.confidence = Q.confidence ?? null;
     S[Q.kind] = result;
-    store.update((d) => { d.assessments.push({ phase: Q.kind, form: Q.form, score: result.score, total: result.total, byTopic: result.byTopic, items: result.items, at: Date.now(), runId: S.state.runId }); });
-    C.Analytics.log('assessment', participant(), 'simulator', { phase: Q.kind, form: Q.form, score: result.score, total: result.total, byTopic: result.byTopic, items: result.items.map((x) => (x.correct ? 1 : 0)) });
+    store.update((d) => { d.assessments.push({ phase: Q.kind, form: Q.form, score: result.score, total: result.total, byTopic: result.byTopic, items: result.items, confidence: result.confidence, at: Date.now(), runId: S.state.runId }); });
+    C.Analytics.log('assessment', participant(), 'simulator', { phase: Q.kind, form: Q.form, score: result.score, total: result.total, byTopic: result.byTopic, items: result.items.map((x) => (x.correct ? 1 : 0)), confidence: result.confidence });
     if (Q.kind === 'post') {
       result.items.forEach((x) => U.recordAnswer(x.topic, x.concept, x.correct, 'post'));
       S.quiz = null; finish(); return;

@@ -76,7 +76,7 @@
       scores,
       checksAnswered: game.checks.length,
       improvement: pre && post ? M.improvement(pre, post) : null,
-      assessment: { pre: pre ? { form: pre.form, score: pre.score, total: pre.total } : null, post: post ? { form: post.form, score: post.score, total: post.total } : null },
+      assessment: { pre: pre ? { form: pre.form, score: pre.score, total: pre.total, confidence: pre.confidence ?? null } : null, post: post ? { form: post.form, score: post.score, total: post.total, confidence: post.confidence ?? null } : null },
       strongest: ext.strongest,
       weakest: ext.weakest,
       summary: M.summarySentence(scores, sum.flags),

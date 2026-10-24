@@ -25,6 +25,7 @@
   const cfg = () => root.CENTSIBLE_CONFIG || {};
   const remoteEnabled = () => !!(cfg().supabaseUrl && cfg().supabaseAnonKey);
   let demo = false;
+  let context = {}; // e.g. { src, firstSrc } — added to every event
 
   function localEvents() {
     try { return JSON.parse(root.localStorage.getItem(KEY)) || []; } catch { return []; }
@@ -35,6 +36,7 @@
 
   function log(type, participant, page, data = {}) {
     if (demo || !TYPES.includes(type)) return false;
+    data = { ...context, ...data };
     const ev = { type, participant, page: String(page || '').slice(0, 40), data, created_at: new Date().toISOString() };
     saveLocal([...localEvents(), ev]);
     if (remoteEnabled() && root.fetch) {
@@ -76,6 +78,15 @@
     const sim = by('sim_complete');
     const scores = sim.map((e) => e.data.challenge).filter((x) => typeof x === 'number');
     const retIds = Object.keys(retention);
+    // Acquisition channel = the first link that brought each participant (firstSrc), else 'direct'.
+    const chanOf = {};
+    events.forEach((e) => { if (!chanOf[e.participant]) chanOf[e.participant] = (e.data && (e.data.firstSrc || e.data.src)) || 'direct'; });
+    const byChannel = {};
+    const bump = (p, k) => { const c = chanOf[p] || 'direct'; byChannel[c] = byChannel[c] || { participants: 0, simStarts: 0, simCompletes: 0 }; byChannel[c][k]++; };
+    participants.forEach((p) => bump(p, 'participants'));
+    by('sim_start').forEach((e) => bump(e.participant, 'simStarts'));
+    by('sim_complete').forEach((e) => bump(e.participant, 'simCompletes'));
+    const conf = (map, ids) => avg(ids.map((p) => { const v = map[p].data.confidence; return v >= 1 && v <= 5 ? v : null; }));
     return {
       participants: participants.size,
       returning,
@@ -103,6 +114,8 @@
       challenge: { n: scores.length, avg: avg(scores), over10k: scores.filter((x) => x > 10000).length },
       rewards: { claims: rewards.length, accuracy: rewards.filter((e) => (e.data.rewards || []).includes('accuracy')).length, score: rewards.filter((e) => (e.data.rewards || []).includes('score')).length },
       syncs: { code: by('sync').filter((e) => e.data.method === 'code').length },
+      confidence: { preAll: conf(pre, Object.keys(pre)), pre: conf(pre, pairedIds), post: conf(post, pairedIds) },
+      byChannel,
       retention: { n: retIds.length, avg: avg(retIds.map((p) => frac(retention[p].data))), preAvg: avg(retIds.filter((p) => pre[p]).map((p) => frac(pre[p].data))) },
     };
   }
@@ -131,6 +144,7 @@
   return {
     TYPES, log, summary, summarize, localEvents, remoteEnabled,
     setDemo(v) { demo = !!v; }, isDemo: () => demo,
+    setContext(c) { context = { ...c }; },
     clearLocal() { saveLocal([]); },
   };
 });

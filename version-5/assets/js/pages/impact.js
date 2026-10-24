@@ -14,6 +14,8 @@
       byTopic: { college: { pre: 0.55, post: 0.84 }, budgeting: { pre: 0.68, post: 0.86 }, credit: { pre: 0.38, post: 0.71 }, saving: { pre: 0.57, post: 0.80 }, income: { pre: 0.42, post: 0.69 }, safety: { pre: 0.61, post: 0.90 } } },
     lessonsCompleted: 112, lessonParticipants: 29, lessonPassRate: 0.81, missionsCompleted: 38,
     feedback: { n: 33, avg: 4.4, npsN: 31, nps: 42, schoolN: 30, schoolYes: 0.7 }, retention: { n: 12, avg: 0.72, preAvg: 0.50 },
+    confidence: { preAll: 2.4, pre: 2.4, post: 3.8 },
+    byChannel: { classroom: { participants: 25, simStarts: 25, simCompletes: 23 }, popup: { participants: 22, simStarts: 18, simCompletes: 14 }, instagram: { participants: 11, simStarts: 9, simCompletes: 6 }, announce: { participants: 6, simStarts: 6, simCompletes: 4 } },
     challenge: { n: 47, avg: 9420, over10k: 18 }, rewards: { claims: 21, accuracy: 9, score: 18, redeemed: 14 }, syncs: { code: 21 },
   };
   const cfg = () => window.CENTSIBLE_CONFIG || {};
@@ -102,6 +104,22 @@
             <div class="hbar"><span>Before</span><span class="track"><i class="c-gold" style="width:${(b.pre || 0) * 100}%"></i></span><span class="n">${pct(b.pre)}</span></div>
             <div class="hbar"><span>After</span><span class="track"><i class="c-mint" style="width:${(b.post || 0) * 100}%"></i></span><span class="n">${pct(b.post)}</span></div></div>`; }).join('')}</div>`
             : '<p class="empty">No paired results yet. They appear after students finish both knowledge checks in the simulator.</p>'}
+        </section>
+        <section class="grid grid-2" style="align-items:start">
+          <div class="card">
+            <h2 style="font-size:1.35rem">${icon('target', 22)} Self-rated preparedness</h2>
+            <p class="small muted">“How prepared do you feel to manage college costs and your own money?” (1–5), asked before and after the simulator.</p>
+            ${s.confidence && s.confidence.pre != null ? `<div class="grid grid-2" style="margin-top:10px"><div class="stat"><span class="k">Before</span><span class="v">${(+s.confidence.pre).toFixed(1)} / 5</span></div><div class="stat"><span class="k">After</span><span class="v" style="color:var(--mint-ink)">${(+s.confidence.post).toFixed(1)} / 5</span></div></div>
+              <p class="small muted" style="margin:10px 0 0">All students’ starting average: ${(+s.confidence.preAll).toFixed(1)} / 5 (initial investigation)</p>`
+              : '<p class="empty">No ratings yet.</p>'}
+          </div>
+          <div class="card">
+            <h2 style="font-size:1.35rem">${icon('share', 22)} Marketing channels</h2>
+            <p class="small muted">Which link first brought each student (from <code>?src=</code> tracking links).</p>
+            ${s.byChannel && Object.keys(s.byChannel).length ? `<div class="table-wrap"><table class="data"><thead><tr><th>Channel</th><th class="num">Students</th><th class="num">Started</th><th class="num">Finished</th><th class="num">Finish rate</th></tr></thead><tbody>
+              ${Object.entries(s.byChannel).sort((a, b) => b[1].participants - a[1].participants).map(([k, v]) => `<tr><td>${esc(k)}</td><td class="num">${v.participants}</td><td class="num">${v.simStarts}</td><td class="num">${v.simCompletes}</td><td class="num">${v.simStarts ? pct(v.simCompletes / v.simStarts) : '—'}</td></tr>`).join('')}</tbody></table></div>`
+              : '<p class="empty">No channel data yet.</p>'}
+          </div>
         </section>
         <div class="grid grid-3">
           <div class="stat card"><span class="k">Lessons completed</span><span class="v">${s.lessonsCompleted}</span><span class="s">by ${s.lessonParticipants} students · ${pct(s.lessonPassRate)} passed on questions</span></div>

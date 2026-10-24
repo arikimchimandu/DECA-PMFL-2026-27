@@ -114,6 +114,19 @@ with
     from latest r left join latest p on p.participant = r.participant and p.phase = 'pre'
     where r.phase = 'retention'
   ),
+  chan as (
+    select distinct on (participant) participant,
+      coalesce(nullif(data->>'firstSrc', ''), nullif(data->>'src', ''), 'direct') as ch
+    from v5_events order by participant, created_at asc
+  ),
+  by_channel as (
+    select c.ch,
+      count(distinct c.participant) as participants,
+      count(e.id) filter (where e.type = 'sim_start') as sim_starts,
+      count(e.id) filter (where e.type = 'sim_complete') as sim_completes
+    from chan c left join v5_events e on e.participant = c.participant
+    group by c.ch
+  ),
   lessons as (select * from v5_events where type = 'lesson_complete'),
   fb as (select data from v5_events where type = 'feedback'),
   ratings as (select (data->>'rating')::numeric as rating from fb where (data->>'rating') ~ '^[1-5]$'),
@@ -156,6 +169,11 @@ select jsonb_build_object(
       'redeemed', (select count(*) from public.v5_redemptions)),
   'syncs', jsonb_build_object(
       'code',  (select count(*) from v5_events where type = 'sync' and data->>'method' = 'code')),
+  'confidence', jsonb_build_object(
+      'preAll', (select avg((data->>'confidence')::numeric) from latest where phase = 'pre' and (data->>'confidence') ~ '^[1-5]$'),
+      'pre',    (select avg((pre->>'confidence')::numeric) from paired where (pre->>'confidence') ~ '^[1-5]$'),
+      'post',   (select avg((post->>'confidence')::numeric) from paired where (post->>'confidence') ~ '^[1-5]$')),
+  'byChannel', (select coalesce(jsonb_object_agg(ch, jsonb_build_object('participants', participants, 'simStarts', sim_starts, 'simCompletes', sim_completes)), '{}'::jsonb) from by_channel),
   'retention', jsonb_build_object('n', (select count(*) from retention), 'avg', (select avg(ret_f) from retention), 'preAvg', (select avg(pre_f) from retention))
 );
 $$;
