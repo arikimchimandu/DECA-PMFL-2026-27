@@ -3,77 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#162B49">
-<title>centspire. — make cents of college</title>
-<meta name="description" content="Centspire: a DECA Project Management financial literacy project helping high schoolers understand tuition, loans, and budgeting.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&display=swap" rel="stylesheet">
-<style>
-  :root { --navy: #162B49; --navy-2: #1E3A5F; --navy-3: #2B4C76; --mint: #6ED9B3; --mint-dark: #3FAE88; --cream: #F7F5EC; --gold: #EFCB75; --muted: #A8B7CB; }
-  * { box-sizing: border-box; }
-  body { margin: 0; min-height: 100vh; background: var(--navy); color: var(--cream); font: 500 17px/1.45 "Bricolage Grotesque", system-ui, sans-serif; }
-  .wrap { max-width: 720px; margin: 0 auto; padding: 48px 16px 40px; }
-  .site-logo { display: block; width: 104px; height: 104px; padding: 10px; border-radius: 28px; background: #F7F5EC; object-fit: contain; }
-  .badge { display: inline-block; background: var(--gold); color: var(--navy); padding: 5px 12px; border-radius: 999px; font-weight: 800; font-size: 14px; }
-  h1 { font-size: clamp(56px, 14vw, 88px); font-weight: 800; line-height: .95; letter-spacing: -.03em; margin: 14px 0 6px; }
-  h1 span { color: var(--mint); }
-  .tag { color: var(--muted); font-size: 20px; margin: 0 0 32px; }
-  .tag b { color: var(--gold); }
-  .hero {
-    display: flex; gap: 18px; align-items: center; text-decoration: none; color: var(--navy); background: var(--mint);
-    border-radius: 22px; padding: 22px; box-shadow: 0 6px 0 var(--mint-dark); margin-bottom: 28px; transition: transform .1s, box-shadow .1s;
-  }
-  .hero:hover { transform: translateY(-2px); box-shadow: 0 8px 0 var(--mint-dark); }
-  .hero:active { transform: translateY(3px); box-shadow: 0 3px 0 var(--mint-dark); }
-  .hero .medal { width: 72px; height: 72px; border-radius: 50%; background: var(--navy); color: var(--mint); display: grid; place-items: center; flex: none; }
-  .hero small { font-weight: 800; letter-spacing: .1em; text-transform: uppercase; font-size: 12px; opacity: .75; }
-  .hero b { display: block; font-size: 30px; font-weight: 800; line-height: 1.1; margin: 2px 0 6px; }
-  h2 { font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; font-weight: 700; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-bottom: 28px; }
-  .tile { display: block; text-decoration: none; color: var(--cream); background: var(--navy-2); border: 1px solid var(--navy-3); border-radius: 18px; padding: 16px 18px; transition: background .15s, transform .1s; }
-  .tile:hover { background: var(--navy-3); transform: translateY(-2px); }
-  .tile .ic { color: var(--mint); display: block; }
-  .tile b { display: block; font-size: 19px; margin: 8px 0 2px; }
-  .tile span.d { color: var(--muted); font-size: 15px; }
-  a:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
-  footer { border-top: 1px solid var(--navy-3); padding-top: 16px; color: var(--muted); font-size: 14px; }
-  @media (max-width: 480px) { .hero { flex-direction: column; align-items: flex-start; } }
-</style>
+<title>Centspire — make cents of college</title>
+<!-- centspire.com opens the live site (Version 5) directly. Keeps ?src= tracking and #anchors.
+     The page listing every version is at /versions.html. -->
+<script>location.replace('version-5/' + location.search + location.hash);</script>
+<meta http-equiv="refresh" content="0; url=version-5/">
+<link rel="canonical" href="https://centspire.com/version-5/">
+<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#162B49;color:#F7F5EC;font:16px system-ui,sans-serif}a{color:#6ED9B3}</style>
 </head>
 <body>
-<div class="wrap">
-  <img class="site-logo" src="icons/logo.png" alt="Centspire logo" width="104" height="104" style="margin-bottom:20px">
-  <span class="badge">DECA Project Management · Financial Literacy</span>
-  <h1>cent<span>spire.</span></h1>
-  <p class="tag">make <b>cents</b> of college.</p>
-
-  <a class="hero" href="version-5/">
-    <span class="medal" data-icon="gradcap" data-size="40"></span>
-    <span>
-      <small>Open the latest version (V5)</small>
-      <b>Centspire: Simulator + Academy</b>
-      A 10–15 minute financial life simulator with rewards and a personalized report, plus 19 Academy lessons (now with scams and car loans), Money Missions, calculators, and saving across devices.
-    </span>
-  </a>
-
-  <h2>For the team</h2>
-  <div class="grid">
-    <a class="tile" href="project-document.html"><span class="ic" data-icon="notebook"></span><b>Project document</b><span class="d">Plan, schedule, roles, risks, and progress</span></a>
-    <a class="tile" href="version-4/"><span class="ic" data-icon="replay"></span><b>Version 4</b><span class="d">Simulator + Academy before V5 feedback</span></a>
-    <a class="tile" href="version-3/"><span class="ic" data-icon="replay"></span><b>Version 3</b><span class="d">Swipe Through College</span></a>
-    <a class="tile" href="mockups/"><span class="ic" data-icon="bulb"></span><b>Design mockups</b><span class="d">Game-show quiz and swipe game prototypes</span></a>
-    <a class="tile" href="version-2/"><span class="ic" data-icon="replay"></span><b>Version 2</b><span class="d">Previous swipe game</span></a>
-    <a class="tile" href="version-1/"><span class="ic" data-icon="replay"></span><b>Version 1</b><span class="d">The first website: lessons and simulation</span></a>
-    <a class="tile" href="centsible.html"><span class="ic" data-icon="form"></span><b>Original outline</b><span class="d">The first project outline</span></a>
-  </div>
-
-  <footer>Built by the centspire. team.</footer>
-</div>
-<script src="version-4/assets/js/lib/icons.js"></script>
-<script>
-  document.querySelectorAll('[data-icon]').forEach((el) => {
-    el.innerHTML = (window.Centsible && window.Centsible.Icons || window.CentsibleIcons).svg(el.dataset.icon, { size: +(el.dataset.size || 26) });
-  });
-</script>
+<p>Opening <a href="version-5/">Centspire</a>…</p>
 </body>
 </html>
