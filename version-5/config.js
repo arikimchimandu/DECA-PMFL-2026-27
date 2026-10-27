@@ -23,13 +23,13 @@ window.CENTSIBLE_CONFIG = {
 
   // Simulator rewards. Change the wording or thresholds once prizes are approved, or set enabled: false.
   rewards: {
-    enabled: true,
+    enabled: false,                   // rewards removed Oct 26 — set true (and fill in a prize) to bring them back
     accuracyThreshold: 0.95,          // more than 95% of answers correct…
     accuracyMinAnswers: 8,
     accuracyReward: '100 Centspire credit points',
     accuracyCredits: 100,
     scoreThreshold: 10000,            // Challenge Score over 10,000 (out of 13,000)…
-    scoreReward: '$5 Dairy Queen coupon',
+    scoreReward: '',                  // prize for the score (leave '' for no score prize)
     claimNote: 'Show this code at the Centspire table to claim your reward. One reward of each kind per student, while supplies last.',
   },
 };

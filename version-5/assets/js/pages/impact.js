@@ -179,7 +179,7 @@
         const r = await rpc('v5_verify_claim', { p_claim: claim });
         if (!r.found) { out.innerHTML = `<div class="callout callout-coral">${icon('x', 20)}<p>No reward was recorded for <b>${esc(claim)}</b>.</p></div>`; return; }
         const rc = C.Rewards.config();
-        const what = (r.rewards || []).map((x) => (x === 'score' ? rc.scoreReward : rc.accuracyReward)).join(' + ');
+        const what = (r.rewards || []).map((x) => (x === 'score' ? (rc.scoreReward || 'Challenge Score prize (no longer offered)') : rc.accuracyReward)).join(' + ');
         out.innerHTML = `<div class="callout ${r.redeemed ? 'callout-gold' : 'callout-mint'}">${icon(r.redeemed ? 'alert' : 'check', 20)}<div><p><b>${esc(claim)}</b> earned <b>${esc(what)}</b> · Challenge Score ${Number(r.score).toLocaleString('en-US')} · ${Math.round(r.accuracy * 100)}% correct · ${new Date(r.created_at).toLocaleString()}</p>
           ${r.redeemed ? '<p><b>Already given out.</b></p>' : `<div class="row" style="gap:8px;margin-top:8px"><button class="btn btn-primary btn-sm" id="cv-redeem">Mark as given out</button></div>`}</div></div>`;
         const red = $('#cv-redeem');

@@ -46,7 +46,7 @@
           <div class="stat" style="background:var(--navy-2)"><span class="k" style="color:var(--muted-on-navy)">Missions</span><span class="v">${missionsDone.length}/${C.Missions.MISSIONS.length}</span></div>
           <div class="stat" style="background:var(--navy-2)"><span class="k" style="color:var(--muted-on-navy)">Simulator reports</span><span class="v">${d.reports.length}</span></div>
           <div class="stat" style="background:var(--navy-2)"><span class="k" style="color:var(--muted-on-navy)">Questions answered</span><span class="v">${totalAnswers}</span></div>
-          <div class="stat" style="background:var(--navy-2)"><span class="k" style="color:var(--muted-on-navy)">Credit points</span><span class="v">${store.credits().toLocaleString('en-US')}</span></div>
+          ${C.Rewards.config().enabled ? `<div class="stat" style="background:var(--navy-2)"><span class="k" style="color:var(--muted-on-navy)">Credit points</span><span class="v">${store.credits().toLocaleString('en-US')}</span></div>` : ''}
           <div class="stat" style="background:var(--navy-2)"><span class="k" style="color:var(--muted-on-navy)">Best Challenge Score</span><span class="v">${(() => { const b = Math.max(0, ...d.reports.map((r) => (r.challenge ? r.challenge.challenge.total : 0))); return b ? b.toLocaleString('en-US') : '—'; })()}</span></div>
         </div>
       </div></section>
@@ -54,9 +54,9 @@
       <div class="container section stack">
         ${retentionHtml}
         <section class="card" id="sync" aria-labelledby="sync-h"></section>
-        ${(d.claims || []).length ? `<section class="card card-cream" aria-labelledby="cl-h"><h2 id="cl-h" style="font-size:1.35rem">${icon('award', 22)} Your reward claim codes</h2>
+        ${C.Rewards.config().enabled && (d.claims || []).length ? `<section class="card card-cream" aria-labelledby="cl-h"><h2 id="cl-h" style="font-size:1.35rem">${icon('award', 22)} Your reward claim codes</h2>
           <p class="small muted">Show a code at the Centspire table to claim your reward.</p>
-          <div class="kv">${d.claims.slice().reverse().map((c) => `<div><span class="k"><code class="claim-inline">${esc(c.claim)}</code> · ${new Date(c.at).toLocaleDateString()}</span><span>${c.rewards.map((x) => (x === 'score' ? esc(C.Rewards.config().scoreReward) : esc(C.Rewards.config().accuracyReward))).join(' + ')}</span></div>`).join('')}</div></section>` : ''}
+          <div class="kv">${d.claims.slice().reverse().map((c) => `<div><span class="k"><code class="claim-inline">${esc(c.claim)}</code> · ${new Date(c.at).toLocaleDateString()}</span><span>${c.rewards.map((x) => (x === 'score' ? esc(C.Rewards.config().scoreReward || 'Challenge Score prize') : esc(C.Rewards.config().accuracyReward))).join(' + ')}</span></div>`).join('')}</div></section>` : ''}
         <section class="grid grid-2" style="align-items:start">
           <div class="card" aria-labelledby="m-h">
             <h2 id="m-h" style="font-size:1.35rem">${icon('target', 22)} Learning scores</h2>

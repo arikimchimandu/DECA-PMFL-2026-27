@@ -127,7 +127,7 @@
     if (!rc.enabled) return '';
     return `<div class="callout callout-mint" style="margin-top:12px">${icon('award', 20)}<div><p><b>Play for rewards.</b> Every decision earns up to 1,000 Challenge points.</p>
       <ul class="small" style="margin:6px 0 0;padding-left:18px"><li>Get more than ${Math.round(rc.accuracyThreshold * 100)}% of your answers right: <b>${esc(rc.accuracyReward)}</b></li>
-      <li>Score over ${rc.scoreThreshold.toLocaleString('en-US')} Challenge points: <b>${esc(rc.scoreReward)}</b></li></ul>
+      ${rc.scoreReward ? `<li>Score over ${rc.scoreThreshold.toLocaleString('en-US')} Challenge points: <b>${esc(rc.scoreReward)}</b></li>` : ''}</ul>
       <p class="small" style="margin:6px 0 0"><a href="about.html#rewards">Reward rules</a></p></div></div>`;
   }
 

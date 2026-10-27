@@ -23,7 +23,7 @@
     accuracyReward: '100 Centspire credit points',
     accuracyCredits: 100,
     scoreThreshold: 10000,       // Challenge Score must be MORE than this
-    scoreReward: '$5 Dairy Queen coupon',
+    scoreReward: '',             // '' = no prize for the Challenge Score
     claimNote: 'Show this code at the Centspire table to claim your reward. One reward of each kind per student, while supplies last.',
   };
   const config = () => ({ ...DEFAULTS, ...(((root.CENTSIBLE_CONFIG || {}).rewards) || {}) });
@@ -72,9 +72,9 @@
       { id: 'accuracy', label: cfg.accuracyReward, credits: cfg.accuracyCredits,
         rule: `More than ${Math.round(cfg.accuracyThreshold * 100)}% of your answers correct (at least ${cfg.accuracyMinAnswers} answers)`,
         earned: acc.total >= cfg.accuracyMinAnswers && acc.pct > cfg.accuracyThreshold },
-      { id: 'score', label: cfg.scoreReward, credits: 0,
+      ...(cfg.scoreReward ? [{ id: 'score', label: cfg.scoreReward, credits: 0,
         rule: `Challenge Score over ${cfg.scoreThreshold.toLocaleString('en-US')} (out of ${ch.max.toLocaleString('en-US')})`,
-        earned: ch.total > cfg.scoreThreshold },
+        earned: ch.total > cfg.scoreThreshold }] : []),
     ] : [];
     const earned = rewards.filter((r) => r.earned);
     return {

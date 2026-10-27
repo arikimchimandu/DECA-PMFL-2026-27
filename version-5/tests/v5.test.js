@@ -93,11 +93,17 @@
   test('score reward needs a Challenge Score over the threshold', () => {
     const st = play({});
     const total = R.challenge(st).total;
-    const at = R.evaluate(st, { cfg: { ...R.DEFAULTS, scoreThreshold: total } });
-    const below = R.evaluate(st, { cfg: { ...R.DEFAULTS, scoreThreshold: total - 1 } });
+    const at = R.evaluate(st, { cfg: { ...R.DEFAULTS, scoreReward: 'Test prize', scoreThreshold: total } });
+    const below = R.evaluate(st, { cfg: { ...R.DEFAULTS, scoreReward: 'Test prize', scoreThreshold: total - 1 } });
     assert.ok(!at.rewards.find((x) => x.id === 'score').earned, 'equal is not over');
     assert.ok(below.rewards.find((x) => x.id === 'score').earned);
     assert.ok(below.claim, 'earning a reward gives a claim code');
+  });
+  test('no score prize is offered when scoreReward is blank', () => {
+    const st = play({});
+    const r = R.evaluate(st, { cfg: { ...R.DEFAULTS, scoreReward: '', scoreThreshold: 0 } });
+    assert.ok(!r.rewards.some((x) => x.id === 'score'));
+    assert.ok(!r.earned.includes('score'));
   });
   test('claim codes are deterministic, well-formed, and differ between runs', () => {
     const a = R.claimCode('run-1', 'p', 10500), b = R.claimCode('run-1', 'p', 10500), c = R.claimCode('run-2', 'p', 10500);
