@@ -4,26 +4,22 @@
 --
 -- What it creates
 --   v5_events            anonymous learning events (insert-only for the public website)
---   v5_impact_summary()  aggregate numbers for the team dashboard — TEAM ONLY (signed-in team emails)
+--   v5_impact_summary(code)  aggregate numbers for the team dashboard — needs the TEAM CODE
 --   v5_saves + v5_code_save() / v5_code_load()   optional "save code" progress (no email or name)
---   v5_verify_claim() / v5_redeem_claim()        reward claim checking at the Centspire table — TEAM ONLY
---   v5_team_members      the emails allowed to use the team dashboard
+--   v5_verify_claim() / v5_redeem_claim()        reward claim checking at the Centspire table — needs the TEAM CODE
+--   v5_team              one row holding a scrambled (bcrypt) copy of the team code — never the code itself
 --
 -- Privacy model
 --   * The public (anon key) can add events but never read them back.
 --   * Save-code progress can only be read by someone who has the exact 12-character code.
---   * Students never sign in or give an email. Only the three team members sign in (Supabase Auth),
---     and only to use the impact dashboard.
+--   * Nobody signs in. The team dashboard and claim checks need a shared TEAM CODE, checked inside the
+--     database against a bcrypt hash. After 20 wrong tries in 10 minutes, all code checks pause for 10 minutes.
 --   * Never put the service_role key in the website. Only the anon (public) key belongs in config.js.
 --
--- AFTER RUNNING THIS FILE (see README → "Connecting Supabase"):
---   0. Add the three team members' emails (they sign in on impact.html with these):
---        insert into public.v5_team_members (email) values ('first@example.com'), ('second@example.com'), ('third@example.com');
---   1. Set a team PIN for redeeming rewards (replace 0000 with your own PIN):
---        select public.v5_set_team_pin('0000');
---   2. Authentication → URL Configuration: add your site to Redirect URLs, e.g.
---        https://arikimchimandu.github.io/DECA-PMFL-2026-27/**
---   3. Team sign-in emails use Supabase's built-in email service (a few emails per hour — plenty for 3 people).
+-- AFTER RUNNING THIS FILE (see README → "Connecting Supabase"), set the team code (at least 8 characters;
+-- a short phrase is best). Run this in a NEW query so the code isn't saved with this file:
+--        select public.v5_set_team_code('your team code here');
+-- Run the same line again any time to change it. The old code stops working immediately.
 
 create extension if not exists pgcrypto with schema extensions;
 
@@ -45,21 +41,61 @@ drop policy if exists "public can add events" on public.v5_events;
 create policy "public can add events" on public.v5_events for insert to anon, authenticated with check (true);
 revoke select, update, delete on public.v5_events from anon, authenticated;
 
--- Team members: only these emails can read dashboard totals and check claims.
-create table if not exists public.v5_team_members (
-  email  text primary key check (email = lower(email))
-);
-alter table public.v5_team_members enable row level security;
-revoke all on public.v5_team_members from anon, authenticated;
+-- Old email sign-in pieces (from earlier drafts) — removed if they exist.
+drop function if exists public.v5_impact_summary();
+drop function if exists public.v5_verify_claim(text);
+drop function if exists public.v5_redeem_claim(text, text);
+drop function if exists public.v5_set_team_pin(text);
+drop function if exists public.v5_is_team();
 
-create or replace function public.v5_is_team()
-returns boolean
-language sql
-stable
+-- Team code: a single row with a bcrypt hash of the shared team code.
+create table if not exists public.v5_team (
+  id         int primary key default 1 check (id = 1),
+  code_hash  text
+);
+alter table public.v5_team add column if not exists code_hash text;
+alter table public.v5_team enable row level security;
+revoke all on public.v5_team from anon, authenticated;
+
+-- Failed code attempts (timestamps only) for the lockout.
+create table if not exists public.v5_code_attempts (at timestamptz not null default now());
+alter table public.v5_code_attempts enable row level security;
+revoke all on public.v5_code_attempts from anon, authenticated;
+
+-- Run once from the SQL Editor: select public.v5_set_team_code('your team code');
+create or replace function public.v5_set_team_code(p_code text)
+returns void
+language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
-  select exists (select 1 from v5_team_members where email = lower(coalesce(auth.jwt() ->> 'email', '')));
+begin
+  if char_length(coalesce(p_code, '')) < 8 then raise exception 'Use a team code with at least 8 characters.'; end if;
+  insert into v5_team (id, code_hash) values (1, extensions.crypt(p_code, extensions.gen_salt('bf', 10)))
+  on conflict (id) do update set code_hash = excluded.code_hash;
+  delete from v5_code_attempts;
+end;
+$$;
+
+-- 'ok' | 'wrong' | 'locked' | 'unset'. Internal: only called by the functions below.
+create or replace function public.v5_team_check(p_code text)
+returns text
+language plpgsql
+volatile
+security definer
+set search_path = public, extensions
+as $$
+declare
+  h text;
+begin
+  delete from v5_code_attempts where at < now() - interval '1 day';
+  if (select count(*) from v5_code_attempts where at > now() - interval '10 minutes') >= 20 then return 'locked'; end if;
+  select code_hash into h from v5_team where id = 1;
+  if h is null then return 'unset'; end if;
+  if h = extensions.crypt(coalesce(p_code, ''), h) then return 'ok'; end if;
+  insert into v5_code_attempts default values;
+  return 'wrong';
+end;
 $$;
 
 -- Redeemed reward claims (created here because the summary below counts them)
@@ -71,7 +107,7 @@ alter table public.v5_redemptions enable row level security;
 revoke all on public.v5_redemptions from anon, authenticated;
 
 -- ===================================================================== impact summary
--- v5_impact_totals() does the math; v5_impact_summary() only returns it to signed-in team members.
+-- v5_impact_totals() does the math; v5_impact_summary(code) only returns it with the right team code.
 create or replace function public.v5_impact_totals()
 returns jsonb
 language sql
@@ -178,15 +214,17 @@ select jsonb_build_object(
 );
 $$;
 
-create or replace function public.v5_impact_summary()
+create or replace function public.v5_impact_summary(p_code text)
 returns jsonb
 language plpgsql
-stable
+volatile
 security definer
 set search_path = public
 as $$
+declare
+  r text := v5_team_check(p_code);
 begin
-  if not v5_is_team() then raise exception 'team only' using errcode = '42501'; end if;
+  if r <> 'ok' then return jsonb_build_object('denied', r); end if;
   return v5_impact_totals();
 end;
 $$;
@@ -227,34 +265,17 @@ as $$
 $$;
 
 -- ===================================================================== reward claims
-create table if not exists public.v5_team (
-  id        int primary key default 1 check (id = 1),
-  pin_hash  text not null
-);
-alter table public.v5_team enable row level security;
-revoke all on public.v5_team from anon, authenticated;
-
--- Run once from the SQL Editor: select public.v5_set_team_pin('your-pin');
-create or replace function public.v5_set_team_pin(p_pin text)
-returns void
-language sql
-security definer
-set search_path = public, extensions
-as $$
-  insert into v5_team (id, pin_hash) values (1, extensions.crypt(p_pin, extensions.gen_salt('bf')))
-  on conflict (id) do update set pin_hash = excluded.pin_hash;
-$$;
-revoke all on function public.v5_set_team_pin(text) from public, anon, authenticated;
-
-create or replace function public.v5_verify_claim(p_claim text)
+create or replace function public.v5_verify_claim(p_claim text, p_code text)
 returns jsonb
 language plpgsql
-stable
+volatile
 security definer
 set search_path = public
 as $$
+declare
+  r text := v5_team_check(p_code);
 begin
-  if not v5_is_team() then raise exception 'team only' using errcode = '42501'; end if;
+  if r <> 'ok' then return jsonb_build_object('denied', r); end if;
   return coalesce(
     (select jsonb_build_object('found', true, 'rewards', e.data->'rewards', 'score', e.data->'score', 'accuracy', e.data->'accuracy',
             'created_at', e.created_at, 'redeemed', exists (select 1 from v5_redemptions r where r.claim = e.data->>'claim'))
@@ -264,19 +285,17 @@ begin
 end;
 $$;
 
-create or replace function public.v5_redeem_claim(p_claim text, p_pin text)
+create or replace function public.v5_redeem_claim(p_claim text, p_code text)
 returns jsonb
 language plpgsql
 security definer
-set search_path = public, extensions
+set search_path = public
 as $$
 declare
-  ok boolean;
+  r text := v5_team_check(p_code);
   c text := upper(trim(p_claim));
 begin
-  if not v5_is_team() then raise exception 'team only' using errcode = '42501'; end if;
-  select (pin_hash = extensions.crypt(p_pin, pin_hash)) into ok from v5_team where id = 1;
-  if ok is not true then return jsonb_build_object('ok', false, 'reason', 'wrong-pin'); end if;
+  if r <> 'ok' then return jsonb_build_object('ok', false, 'reason', 'denied', 'denied', r); end if;
   if not exists (select 1 from v5_events where type = 'reward' and data->>'claim' = c) then
     return jsonb_build_object('ok', false, 'reason', 'not-found');
   end if;
@@ -287,16 +306,17 @@ end;
 $$;
 
 -- ===================================================================== who can call what
-revoke all on function public.v5_impact_summary() from public;
 revoke all on function public.v5_impact_totals() from public, anon, authenticated;
-revoke all on function public.v5_is_team() from public;
+revoke all on function public.v5_team_check(text) from public, anon, authenticated;
+revoke all on function public.v5_set_team_code(text) from public, anon, authenticated;
+revoke all on function public.v5_impact_summary(text) from public;
 revoke all on function public.v5_code_save(text, jsonb) from public;
 revoke all on function public.v5_code_load(text) from public;
-revoke all on function public.v5_verify_claim(text) from public;
+revoke all on function public.v5_verify_claim(text, text) from public;
 revoke all on function public.v5_redeem_claim(text, text) from public;
-grant execute on function public.v5_impact_summary() to authenticated;
-grant execute on function public.v5_is_team() to authenticated;
+-- The website (anon key) may call these; each one checks the team code itself.
+grant execute on function public.v5_impact_summary(text) to anon, authenticated;
+grant execute on function public.v5_verify_claim(text, text) to anon, authenticated;
+grant execute on function public.v5_redeem_claim(text, text) to anon, authenticated;
 grant execute on function public.v5_code_save(text, jsonb) to anon, authenticated;
 grant execute on function public.v5_code_load(text) to anon, authenticated;
-grant execute on function public.v5_verify_claim(text) to authenticated;
-grant execute on function public.v5_redeem_claim(text, text) to authenticated;

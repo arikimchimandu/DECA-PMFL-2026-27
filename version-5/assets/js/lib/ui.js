@@ -83,12 +83,6 @@
         </div>`;
     }
     if (!demo) mountFeedbackBand();
-    // Returning from a team sign-in link (impact dashboard)?
-    if (!demo && C.Cloud) {
-      const r = C.Cloud.captureRedirect();
-      if (r && r.error) toast('Sign-in link problem: ' + r.error);
-      else if (r && r.session) { toast('Signed in'); root.dispatchEvent(new Event('centspire:signin')); }
-    }
     // Count one visit per day per participant (for returning-participant stats).
     if (!demo) {
       const info = store.touch();

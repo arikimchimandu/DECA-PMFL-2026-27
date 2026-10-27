@@ -62,29 +62,26 @@ After editing CSS or JS, bump the `?v=5.0.0` version in the HTML `<script>`/`<li
 `config.js` already has the project URL and anon key. V5 uses **new tables**, so it needs one setup step before shared data, save codes, the team dashboard, or claim checking work. Until then everything else works and data stays on each device.
 
 1. Supabase → **SQL Editor** → paste and run [`supabase/schema.sql`](supabase/schema.sql). (V4's tables are left alone.)
-2. Add the three team emails — only these can open the impact dashboard and check claims:
+2. Set the **team code**. It unlocks the impact dashboard and reward-claim checks. Use at least 8 characters; a short phrase works well. Run it in a **new** query so the code isn't saved alongside the setup file:
    ```sql
-   insert into public.v5_team_members (email) values ('first@example.com'), ('second@example.com'), ('third@example.com');
+   select public.v5_set_team_code('your team code here');
    ```
-3. Set the team PIN used to mark rewards as given out (pick your own PIN):
-   ```sql
-   select public.v5_set_team_pin('your-pin');
-   ```
-4. **Authentication → URL Configuration → Redirect URLs:** add `https://arikimchimandu.github.io/DECA-PMFL-2026-27/**` (and `http://localhost:8000/**` for testing). Team sign-in links (impact dashboard) only return to allowed addresses.
-5. Sign in on `impact.html` with a team email and check that it says "Actual data from the shared database", and try **My Progress → Get a save code**.
+   Run the same line again any time to change the code. The old one stops working immediately.
+3. Open `impact.html`, enter the team code, and check that it says "Actual data from the shared database". Then try **My Progress → Get a save code**.
 
 **Privacy design:**
-- The public key can only *add* events; there's no read policy. Dashboard totals and claim checks only work for signed-in emails in `v5_team_members`.
+- The public key can only *add* events; there's no read policy. Dashboard totals and claim checks only work with the team code, which the database checks against a bcrypt hash (the code itself is never stored). After 20 wrong tries in 10 minutes, code checks pause for 10 minutes. Anyone could trigger that pause by guessing on purpose, but they still can't get in.
+- The team code is remembered only until the browser tab closes. Change it if it leaks, and never give it to students.
 - Team pages (`impact.html`, `demo.html`, `tests/`) aren't linked from the public site and ask search engines not to index them. The repository is public, so the demo and tests pages are unlisted rather than secret — they contain no student data.
 - Save-code progress has no name or email and can only be loaded with the exact 12-character code.
-- Students never sign in or give an email. Only team members sign in, and only for the dashboard.
+- Nobody signs in or gives an email: students use save codes, and the team uses the team code.
 - **Never put the `service_role` key in this repository.**
 
 > The SQL follows standard Supabase conventions but hasn't been run against a live project yet. If a statement errors, copy the error message and fix that statement before going live.
 
 ## Rewards
 
-Wording and thresholds are in `config.js` → `rewards` (set `enabled: false` to turn them off). Students who earn a reward get a claim code like `CS-7BK4-9EE7` on their report. At the table, open `impact.html` → **Check a reward claim**, type the code, and enter the team PIN to mark it as given out so it can't be reused.
+Wording and thresholds are in `config.js` → `rewards` (set `enabled: false` to turn them off). Students who earn a reward get a claim code like `CS-7BK4-9EE7` on their report. At the table, open `impact.html` → **Check a reward claim**, type the code, and mark it as given out so it can't be reused (the dashboard must be unlocked with the team code).
 
 Limits: the check confirms a reward was recorded, but a determined student could fake an event through the public API, or replay after clearing their browser. That's acceptable for small prizes; enforce "one per student" at the table.
 
@@ -103,7 +100,7 @@ version-5/
     store.js                   Progress saved in this browser (tested)
     analytics.js               Anonymous impact events + summaries (tested)
     rewards.js                 Challenge Score, accuracy, claim codes (tested)
-    cloud.js                   Save codes + team sign-in through Supabase
+    cloud.js                   Save codes through Supabase
     icons.js  ui.js  widgets.js  Shared UI, icon set, interactive calculators
   assets/js/content/           ← all student-facing text lives here
     assessments.js             Equivalent pre/post forms A and B

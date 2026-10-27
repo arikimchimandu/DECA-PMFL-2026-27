@@ -19,58 +19,68 @@
     challenge: { n: 47, avg: 9420, over10k: 18 }, rewards: { claims: 21, accuracy: 9, score: 18, redeemed: 14 }, syncs: { code: 21 },
   };
   const cfg = () => window.CENTSIBLE_CONFIG || {};
-  let token = null;
+  // The team code is kept only for this browser tab (sessionStorage) and is cleared when the tab closes.
+  const CODE_KEY = 'centspire_team_code';
+  const getCode = () => { try { return sessionStorage.getItem(CODE_KEY) || ''; } catch { return ''; } };
+  const setCode = (c) => { try { if (c) sessionStorage.setItem(CODE_KEY, c); else sessionStorage.removeItem(CODE_KEY); } catch { /* storage blocked */ } };
+  let code = getCode();
+
+  const DENIED = {
+    wrong: ['coral', 'lock', 'That team code isn’t right. Check with your team and try again.'],
+    locked: ['coral', 'clock', 'Too many wrong codes were tried recently, so code checks are paused for up to 10 minutes. Try again soon.'],
+    unset: ['gold', 'alert', 'No team code has been set yet. In Supabase → SQL Editor, run: <code>select public.v5_set_team_code(\'your team code\');</code>'],
+    setup: ['gold', 'alert', 'The V5 database setup hasn’t been run yet, so there’s no shared data to show. See the README → “Connecting Supabase”.'],
+    offline: ['gold', 'alert', 'Couldn’t reach the database. Check your connection and try again.'],
+  };
+
   async function rpc(name, body) {
-    const res = await fetch(`${cfg().supabaseUrl}/rest/v1/rpc/${name}`, { method: 'POST', headers: { apikey: cfg().supabaseAnonKey, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-    if (res.status === 401 || res.status === 403) throw new Error('Only signed-in team members can check claims.');
+    const res = await fetch(`${cfg().supabaseUrl}/rest/v1/rpc/${name}`, { method: 'POST', headers: { apikey: cfg().supabaseAnonKey, Authorization: `Bearer ${cfg().supabaseAnonKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ ...body, p_code: code }) });
     if (!res.ok) throw new Error(res.status === 404 ? 'The V5 database setup hasn’t been run yet.' : 'Couldn’t reach the database (error ' + res.status + ').');
-    return res.json();
+    const json = await res.json();
+    if (json && json.denied) { const d = DENIED[json.denied] || DENIED.wrong; throw new Error(d[2].replace(/<[^>]+>/g, '')); }
+    return json;
   }
 
-  // Team-only gate: shown until a team member signs in (demo mode shows labeled fictional data instead).
+  // Team-only gate: shown until the team code is entered (demo mode shows labeled fictional data instead).
   function gate(reason) {
-    const sess = C.Cloud.getSession();
-    const msg = reason === 'not-team' ? `<div class="callout callout-coral">${icon('lock', 20)}<p><b>${esc(sess && sess.user.email || 'This account')}</b> isn’t on the team list. Ask Ari to add your email in Supabase (<code>v5_team_members</code>).</p></div>`
-      : reason === 'setup' ? `<div class="callout callout-gold">${icon('alert', 20)}<p>The V5 database setup hasn’t been run yet, so there’s no shared data to show.</p></div>`
-        : reason === 'offline' ? `<div class="callout callout-gold">${icon('alert', 20)}<p>Couldn’t reach the database. Check your connection and refresh.</p></div>` : '';
+    const d = reason && DENIED[reason];
     root.innerHTML = `
       <section class="hero on-navy"><div class="container" style="padding-top:48px;padding-bottom:40px">
         <p class="eyebrow" style="color:var(--gold)">${icon('lock', 16)} Team only</p>
         <h1 style="max-width:22ch">Impact dashboard</h1>
-        <p class="lead">Sign in with your team email to see results and check reward claims.</p>
+        <p class="lead">Enter the team code to see results and check reward claims.</p>
       </div></section>
       <div class="container section stack" style="max-width:640px">
-        ${msg}
-        <section class="card">
-          ${sess ? `<p>Signed in as <b>${esc(sess.user.email)}</b>.</p><button class="btn btn-ghost btn-sm" id="tm-out">Sign out</button>`
-            : `<div class="field"><label for="tm-email">Team email</label><input class="input" id="tm-email" type="email" autocomplete="email" placeholder="you@example.com"></div>
-              <button class="btn btn-navy btn-sm" id="tm-send" style="margin-top:10px">${icon('mail', 16)} Email me a sign-in link</button>
-              <p class="small muted" style="margin:10px 0 0">Open the link on this device. Only emails on the team list can see data.</p>`}
-          <p class="error" id="tm-err" role="alert"></p>
-        </section>
-        <p class="small muted">Presenting? <a href="?demo=1">Show labeled demo data</a> (fictional numbers, no sign-in needed).</p>
+        ${d ? `<div class="callout callout-${d[0]}" role="alert">${icon(d[1], 20)}<p>${d[2]}</p></div>` : ''}
+        <form class="card" id="tm-form" autocomplete="off">
+          <div class="field"><label for="tm-code">Team code</label><input class="input" id="tm-code" type="password" autocomplete="current-password" spellcheck="false" required minlength="8"></div>
+          <button class="btn btn-navy btn-sm" type="submit" style="margin-top:10px">${icon('lock', 16)} Open dashboard</button>
+          <p class="small muted" style="margin:10px 0 0">The code is remembered only until you close this tab. Don’t share it with students.</p>
+        </form>
+        <p class="small muted">Presenting? <a href="?demo=1">Show labeled demo data</a> (fictional numbers, no code needed).</p>
       </div>`;
-    const send = $('#tm-send');
-    if (send) send.onclick = async () => {
-      send.disabled = true;
-      try { await C.Cloud.sendLink($('#tm-email').value, location.origin + location.pathname); send.outerHTML = `<p class="small">${icon('check', 16)} Check your inbox and open the link on this device.</p>`; }
-      catch (e) { send.disabled = false; $('#tm-err').textContent = e.message; }
+    $('#tm-form').onsubmit = (e) => {
+      e.preventDefault();
+      code = $('#tm-code').value;
+      setCode(code);
+      root.innerHTML = '<div class="container section"><p class="muted">Checking the code…</p></div>';
+      render();
     };
-    const out = $('#tm-out');
-    if (out) out.onclick = async () => { await C.Cloud.signOut(); gate(); };
+    const inp = $('#tm-code'); if (inp) inp.focus({ preventScroll: true });
   }
-  window.addEventListener('centspire:signin', () => render());
 
   let showDemo = U.demo;
 
   async function render() {
     let real = { source: 'device', data: null };
     if (!showDemo) {
-      const sess = C.Analytics.remoteEnabled() ? await C.Cloud.validSession() : null;
-      token = sess ? sess.access_token : null;
-      real = await C.Analytics.summary({ token });
-      if (real.source === 'denied') return gate(real.reason === 'signin' ? null : real.reason);
+      real = await C.Analytics.summary({ code });
+      if (real.source === 'denied') {
+        if (real.reason === 'wrong' || real.reason === 'locked') { code = ''; setCode(''); }
+        return gate(real.reason === 'code' ? null : real.reason);
+      }
     }
+    const unlocked = !showDemo && real.source === 'shared';
     const s = showDemo ? DEMO : real.data;
     const label = showDemo
       ? `<div class="callout" style="background:var(--gold);color:var(--navy)">${icon('presentation', 22)}<p><b>DEMO DATA — fictional numbers for presentations.</b> These are not real participant results.</p></div>`
@@ -86,7 +96,7 @@
         <div class="row" style="margin-top:14px">
           <button class="btn ${showDemo ? 'btn-ghost' : 'btn-primary'} btn-sm" data-mode="real" aria-pressed="${!showDemo}">Actual data</button>
           <button class="btn ${showDemo ? 'btn-gold' : 'btn-ghost'} btn-sm" data-mode="demo" aria-pressed="${showDemo}">Demo data</button>
-          ${token ? `<button class="btn btn-ghost btn-sm" id="tm-out2">Sign out</button>` : ''}
+          ${unlocked ? `<button class="btn btn-ghost btn-sm" id="tm-out2">${icon('lock', 16)} Lock dashboard</button>` : ''}
         </div>
       </div></section>
       <div class="container section stack">
@@ -136,7 +146,7 @@
         </div>
         <section class="card" id="claims" aria-labelledby="cv-h">
           <h2 id="cv-h" style="font-size:1.35rem">${icon('award', 22)} Check a reward claim</h2>
-          <p class="small muted">At the pop-up table: type the student’s claim code to see what they earned. Enter the team PIN to mark it as given out, so a code can’t be used twice.</p>
+          <p class="small muted">At the pop-up table: type the student’s claim code to see what they earned, then mark it as given out so it can’t be used twice.</p>
           <div class="row" style="gap:8px;align-items:flex-end">
             <div class="field" style="margin:0"><label for="cv-code">Claim code</label><input class="input" id="cv-code" placeholder="CS-XXXX-XXXX" autocomplete="off" style="max-width:200px"></div>
             <button class="btn btn-navy btn-sm" id="cv-check">Check code</button>
@@ -156,26 +166,26 @@
       </div>`;
     root.querySelectorAll('[data-mode]').forEach((b) => b.addEventListener('click', () => { showDemo = b.dataset.mode === 'demo'; render(); }));
     const out2 = $('#tm-out2');
-    if (out2) out2.onclick = async () => { await C.Cloud.signOut(); token = null; render(); };
-    if (showDemo || !token) { const cl = $('#claims'); if (cl) cl.remove(); }
+    if (out2) out2.onclick = () => { code = ''; setCode(''); gate(); };
+    if (!unlocked) { const cl = $('#claims'); if (cl) cl.remove(); }
     const check = $('#cv-check');
     if (check) check.onclick = async () => {
-      const code = $('#cv-code').value.trim().toUpperCase();
+      const claim = $('#cv-code').value.trim().toUpperCase();
       const out = $('#cv-out');
-      if (!/^CS-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(code)) { out.innerHTML = '<p class="small" style="color:var(--coral-ink)">Claim codes look like CS-AB12-CD34.</p>'; return; }
+      if (!/^CS-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(claim)) { out.innerHTML = '<p class="small" style="color:var(--coral-ink)">Claim codes look like CS-AB12-CD34.</p>'; return; }
       if (!C.Analytics.remoteEnabled()) { out.innerHTML = '<p class="small muted">Claims can only be checked when the shared database is connected.</p>'; return; }
       out.innerHTML = '<p class="small muted">Checking…</p>';
       try {
-        const r = await rpc('v5_verify_claim', { p_claim: code });
-        if (!r.found) { out.innerHTML = `<div class="callout callout-coral">${icon('x', 20)}<p>No reward was recorded for <b>${esc(code)}</b>.</p></div>`; return; }
+        const r = await rpc('v5_verify_claim', { p_claim: claim });
+        if (!r.found) { out.innerHTML = `<div class="callout callout-coral">${icon('x', 20)}<p>No reward was recorded for <b>${esc(claim)}</b>.</p></div>`; return; }
         const rc = C.Rewards.config();
         const what = (r.rewards || []).map((x) => (x === 'score' ? rc.scoreReward : rc.accuracyReward)).join(' + ');
-        out.innerHTML = `<div class="callout ${r.redeemed ? 'callout-gold' : 'callout-mint'}">${icon(r.redeemed ? 'alert' : 'check', 20)}<div><p><b>${esc(code)}</b> earned <b>${esc(what)}</b> · Challenge Score ${Number(r.score).toLocaleString('en-US')} · ${Math.round(r.accuracy * 100)}% correct · ${new Date(r.created_at).toLocaleString()}</p>
-          ${r.redeemed ? '<p><b>Already given out.</b></p>' : `<div class="row" style="gap:8px;margin-top:8px"><input class="input" id="cv-pin" type="password" placeholder="Team PIN" autocomplete="off" style="max-width:140px"><button class="btn btn-primary btn-sm" id="cv-redeem">Mark as given out</button></div>`}</div></div>`;
+        out.innerHTML = `<div class="callout ${r.redeemed ? 'callout-gold' : 'callout-mint'}">${icon(r.redeemed ? 'alert' : 'check', 20)}<div><p><b>${esc(claim)}</b> earned <b>${esc(what)}</b> · Challenge Score ${Number(r.score).toLocaleString('en-US')} · ${Math.round(r.accuracy * 100)}% correct · ${new Date(r.created_at).toLocaleString()}</p>
+          ${r.redeemed ? '<p><b>Already given out.</b></p>' : `<div class="row" style="gap:8px;margin-top:8px"><button class="btn btn-primary btn-sm" id="cv-redeem">Mark as given out</button></div>`}</div></div>`;
         const red = $('#cv-redeem');
         if (red) red.onclick = async () => {
-          const x = await rpc('v5_redeem_claim', { p_claim: code, p_pin: $('#cv-pin').value });
-          const msg = x.ok ? 'Marked as given out.' : x.reason === 'wrong-pin' ? 'Wrong team PIN.' : x.reason === 'already-redeemed' ? 'This code was already given out.' : 'Code not found.';
+          const x = await rpc('v5_redeem_claim', { p_claim: claim });
+          const msg = x.ok ? 'Marked as given out.' : x.reason === 'already-redeemed' ? 'This code was already given out.' : 'Code not found.';
           U.toast(msg);
           if (x.ok || x.reason === 'already-redeemed') check.click();
         };

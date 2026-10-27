@@ -92,3 +92,38 @@
     C.Analytics.setDemo(false);
   });
 })();
+
+/* Team dashboard: the team code is sent to the database, and its answer decides access. */
+(function () {
+  const { test, assert } = globalThis.CentsibleTest;
+  const C = globalThis.Centsible;
+  async function withFakeDb(reply, fn) {
+    const root = globalThis, oldFetch = root.fetch, oldCfg = root.CENTSIBLE_CONFIG;
+    const sent = [];
+    root.CENTSIBLE_CONFIG = { ...(oldCfg || {}), supabaseUrl: 'https://example.supabase.co', supabaseAnonKey: 'anon', summaryFunction: 'v5_impact_summary' };
+    root.fetch = async (url, opts) => { sent.push({ url, body: JSON.parse(opts.body) }); return { ok: true, status: 200, json: async () => reply }; };
+    try { await fn(sent); } finally { root.fetch = oldFetch; root.CENTSIBLE_CONFIG = oldCfg; }
+  }
+  test('team dashboard asks for the code before contacting the database', async () => {
+    await withFakeDb({}, async (sent) => {
+      const r = await C.Analytics.summary({});
+      assert.equal(r.source, 'denied'); assert.equal(r.reason, 'code'); assert.equal(sent.length, 0);
+    });
+  });
+  test('team dashboard sends the code and shows totals only when the database accepts it', async () => {
+    await withFakeDb({ participants: 3 }, async (sent) => {
+      const r = await C.Analytics.summary({ code: 'correct horse' });
+      assert.equal(sent[0].body.p_code, 'correct horse');
+      assert.ok(/rpc\/v5_impact_summary$/.test(sent[0].url));
+      assert.equal(r.source, 'shared'); assert.equal(r.data.participants, 3);
+    });
+  });
+  test('wrong, locked, and unset codes are reported, never shown as data', async () => {
+    for (const why of ['wrong', 'locked', 'unset']) {
+      await withFakeDb({ denied: why }, async () => {
+        const r = await C.Analytics.summary({ code: 'nope nope' });
+        assert.equal(r.source, 'denied'); assert.equal(r.reason, why);
+      });
+    }
+  });
+})();

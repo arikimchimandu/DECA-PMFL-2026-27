@@ -121,19 +121,21 @@
   }
 
   /** Team dashboard totals. The shared summary is team-only: pass a signed-in team member's token. */
-  async function summary({ token } = {}) {
+  /** Team dashboard totals. `code` is the shared team code; the database checks it. */
+  async function summary({ code } = {}) {
     if (remoteEnabled() && root.fetch) {
-      if (!token) return { source: 'denied', reason: 'signin' };
+      if (!code) return { source: 'denied', reason: 'code' };
       try {
         const res = await root.fetch(`${cfg().supabaseUrl}/rest/v1/rpc/${cfg().summaryFunction || 'v5_impact_summary'}`, {
           method: 'POST',
-          headers: { apikey: cfg().supabaseAnonKey, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-          body: '{}',
+          headers: { apikey: cfg().supabaseAnonKey, Authorization: `Bearer ${cfg().supabaseAnonKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ p_code: code }),
         });
-        if (res.status === 401 || res.status === 403) return { source: 'denied', reason: 'not-team' };
         if (res.status === 404) return { source: 'denied', reason: 'setup' };
         if (!res.ok) throw new Error('HTTP ' + res.status);
-        return { source: 'shared', data: await res.json() };
+        const json = await res.json();
+        if (json && json.denied) return { source: 'denied', reason: json.denied }; // wrong | locked | unset
+        return { source: 'shared', data: json };
       } catch (e) {
         return { source: 'denied', reason: 'offline' };
       }
