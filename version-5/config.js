@@ -16,7 +16,7 @@ window.CENTSIBLE_CONFIG = {
 
   // Who made Centspire (shown in the footer). Add a contact email to show a "Questions?" link.
   team: {
-    creators: 'Dia, Ari, and Sanskriti',
+    creators: 'Ari, Dia, and Sanskriti',
     school: '',
     contact: '',
   },
