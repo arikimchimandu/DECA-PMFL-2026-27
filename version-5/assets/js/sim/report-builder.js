@@ -76,6 +76,7 @@
       scores,
       checksAnswered: game.checks.length,
       improvement: pre && post ? M.improvement(pre, post) : null,
+      review: ['pre', 'post'].map((k) => [k, k === 'pre' ? pre : post]).filter(([, x]) => x).map(([k, x]) => ({ phase: k, form: x.form, items: x.items.map((i) => ({ slot: i.slot, topic: i.topic, correct: i.correct, chosen: i.chosen ?? null })) })),
       assessment: { pre: pre ? { form: pre.form, score: pre.score, total: pre.total, confidence: pre.confidence ?? null } : null, post: post ? { form: post.form, score: post.score, total: post.total, confidence: post.confidence ?? null } : null },
       strongest: ext.strongest,
       weakest: ext.weakest,

@@ -114,7 +114,7 @@
       <div class="grid grid-2" style="margin:18px 0">
         ${Sim.CHAPTERS.map((c) => `<div class="row" style="align-items:flex-start;gap:12px"><span class="medal medal-${c.id % 2 ? 'mint' : 'gold'}">${icon(c.icon, 22)}</span><span><b>${c.id}. ${c.title}</b><br><span class="small muted">${c.subtitle}</span></span></div>`).join('')}
       </div>
-      <div class="callout callout-gold">${icon('chart', 20)}<p>${replay ? 'You’ve played before. You can skip the knowledge checks this time and just explore a different path.' : 'You’ll start and finish with a quick 12-question knowledge check (about 2 minutes each). It’s not graded — it shows what you learned and personalizes your report.'}</p></div>
+      <div class="callout callout-gold">${icon('chart', 20)}<p>${replay ? 'You’ve played before. You can skip the knowledge checks this time and just explore a different path.' : 'You’ll start and finish with a quick 12-question knowledge check (about 3 minutes each). It’s not graded — it shows what you learned and personalizes your report.'}</p></div>
       ${rewardsCallout()}
       ${replay ? `<label class="row small" style="margin-top:14px;gap:8px"><input type="checkbox" id="learn"> Take the knowledge checks again</label>` : ''}
       <div class="row" style="margin-top:20px"><button class="btn btn-primary" id="go">${icon('play', 18)} Start the simulation</button></div>
@@ -141,12 +141,74 @@
     stage.querySelectorAll('[data-v]').forEach((b) => b.addEventListener('click', () => { Q.confidence = +b.dataset.v; save(); quizScreen(); }));
   }
 
+  // ------------------------------------------------------------ knowledge check: intro → rating → questions → results
+  const TOPICS = C.Assessments.TOPICS;
+  const topicOf = (item) => TOPICS.find((t) => t.id === C.Assessments.OBJECTIVES.find((o) => o.slot === item.slot).topic);
+  const topicTiles = () => `<div class="topic-tiles">${TOPICS.map((t) => `<span class="topic-tile">${icon(t.icon, 18)} ${t.label}</span>`).join('')}</div>`;
+
+  function quizIntro() {
+    const Q = S.quiz, pre = Q.kind === 'pre', n = C.Assessments.forms[Q.form].length;
+    card(pre ? `<p class="eyebrow">${icon('target', 16)} Knowledge check · before you play</p>
+      <h2>First, let’s see where you’re starting</h2>
+      <p class="scene">Before the game, answer ${n} quick questions so we know what you already know about money.</p>
+      <div class="quiz-facts">
+        <div><span class="k">${icon('notebook', 18)} Questions</span><span class="v">${n}</span><span class="s">2 from each of ${TOPICS.length} topics</span></div>
+        <div><span class="k">${icon('clock', 18)} Time</span><span class="v">About 3 min</span><span class="s">Multiple choice</span></div>
+        <div><span class="k">${icon('check', 18)} Graded?</span><span class="v">No</span><span class="s">Guessing is fine</span></div>
+      </div>
+      <p class="small" style="margin:16px 0 6px"><b>Topics covered:</b></p>${topicTiles()}
+      <div class="callout callout-mint" style="margin-top:16px">${icon('bulb', 20)}<div><p><b>How we use your answers</b></p>
+        <ul class="small" style="margin:6px 0 0;padding-left:18px">
+          <li>You’ll see your score and your strongest and weakest topics right after.</li>
+          <li>Your report recommends lessons for the topics where you missed questions.</li>
+          <li>After the game you’ll take a different set of ${n} questions on the same skills, so you can see how much you learned.</li>
+        </ul></div></div>
+      <div class="row" style="margin-top:20px"><button class="btn btn-primary" id="qgo">Start the questions ${icon('arrowR', 18)}</button></div>`
+      : `<p class="eyebrow">${icon('target', 16)} Final knowledge check</p>
+      <h2>You finished the game! One last check</h2>
+      <p class="scene">${n} new questions on the same ${TOPICS.length} topics — about 3 minutes. They’re different from the first set but test the same skills, so we can show how much you learned.</p>
+      ${topicTiles()}
+      <div class="row" style="margin-top:20px"><button class="btn btn-primary" id="qgo">Start the final check ${icon('arrowR', 18)}</button></div>`);
+    $('#qgo').onclick = () => { Q.introSeen = true; save(); quizScreen(); };
+  }
+
+  function quizResults() {
+    const kind = S.quizResult, r = S[kind];
+    const pre = kind === 'pre';
+    const pctOf = (b) => (b && b.total ? b.correct / b.total : 0);
+    const rows = TOPICS.map((t) => {
+      const b = r.byTopic[t.id] || { correct: 0, total: 0 }, before = !pre && S.pre ? S.pre.byTopic[t.id] : null;
+      const color = pctOf(b) >= 1 ? 'var(--mint)' : pctOf(b) >= 0.5 ? 'var(--gold)' : 'var(--coral)';
+      return `<div class="topic-score"><span class="name"><span class="medal medal-cream" style="width:34px;height:34px">${icon(t.icon, 18)}</span>${t.label}</span>
+        <span><b>${b.correct}/${b.total}</b>${before ? ` <span class="small muted">(before: ${before.correct}/${before.total})</span>` : ''}</span>
+        <div class="progress"><i style="width:${pctOf(b) * 100}%;background:${color}"></i></div></div>`;
+    }).join('');
+    const ranked = TOPICS.map((t) => [t, pctOf(r.byTopic[t.id])]).sort((a, b) => b[1] - a[1]);
+    const strong = ranked.filter(([, v]) => v === ranked[0][1] && v > 0).map(([t]) => t.label);
+    const weak = ranked.filter(([, v]) => v < 1 && v === ranked[ranked.length - 1][1]).map(([t]) => t.label);
+    const change = !pre && S.pre ? r.score - S.pre.score : null;
+    card(`<p class="eyebrow">${icon('chart', 16)} ${pre ? 'Your starting point' : 'Final knowledge check results'}</p>
+      <h2>You got ${r.score} of ${r.total} right${change != null ? (change > 0 ? ` — up ${change} from your first check!` : change === 0 ? ' — the same as your first check' : '') : ''}</h2>
+      <div class="score-big"><span>${Math.round((r.score / r.total) * 100)}%</span>${change != null ? `<span class="small muted">First check: ${S.pre.score}/${S.pre.total}</span>` : ''}</div>
+      <div style="margin-top:14px">${rows}</div>
+      <div class="callout ${pre ? 'callout-gold' : 'callout-mint'}" style="margin-top:14px">${icon(pre ? 'bulb' : 'trend', 20)}<p>${pre
+        ? `${strong.length ? `<b>Strongest:</b> ${esc(strong.join(', '))}. ` : ''}${weak.length ? `<b>Watch for:</b> ${esc(weak.join(', '))} — the game will show you how these work.` : 'Great start across the board.'} You’ll see every answer explained in your report at the end.`
+        : 'Your full report explains every question and recommends lessons for any topic you’re still working on.'}</p></div>
+      <div class="row" style="margin-top:20px"><button class="btn btn-primary" id="qnext">${pre ? `Start Chapter 1 ${icon('arrowR', 18)}` : `See my Financial Future Report ${icon('arrowR', 18)}`}</button></div>`);
+    $('#qnext').onclick = () => {
+      S.quizResult = null;
+      if (pre) { S.phase = 'play'; save(); render(); } else finish();
+    };
+  }
+
   function quizScreen() {
     const Q = S.quiz, form = C.Assessments.forms[Q.form], i = Q.answers.length;
+    if (!Q.introSeen && i === 0) return quizIntro();
     if (Q.confidence == null && i === 0) return confidenceScreen();
     const pre = Q.kind === 'pre';
-    card(`<p class="eyebrow">${pre ? 'Before you start' : 'Final knowledge check'} · Question ${i + 1} of ${form.length}</p>
-      <div class="progress" style="margin-bottom:18px"><i style="width:${(i / form.length) * 100}%"></i></div>
+    const t = topicOf(form[i]);
+    card(`<div class="decision-progress"><span><b>Question ${i + 1} of ${form.length}</b> · ${pre ? 'Starting check' : 'Final check'}</span><span class="topic-tag">${icon(t.icon, 16)} ${t.label}</span></div>
+      <div class="progress" style="margin:6px 0 18px"><i style="width:${(i / form.length) * 100}%"></i></div>
       <div id="q"></div>
       <p class="small muted" style="margin-top:16px">${pre ? 'Just answer what you think — guessing is fine. You’ll see explanations in your report.' : 'Almost done! These questions are different from the first set but test the same skills.'}</p>`);
     U.question($('#q'), form[i], {
@@ -165,11 +227,8 @@
     S[Q.kind] = result;
     store.update((d) => { d.assessments.push({ phase: Q.kind, form: Q.form, score: result.score, total: result.total, byTopic: result.byTopic, items: result.items, confidence: result.confidence, at: Date.now(), runId: S.state.runId }); });
     C.Analytics.log('assessment', participant(), 'simulator', { phase: Q.kind, form: Q.form, score: result.score, total: result.total, byTopic: result.byTopic, items: result.items.map((x) => (x.correct ? 1 : 0)), confidence: result.confidence });
-    if (Q.kind === 'post') {
-      result.items.forEach((x) => U.recordAnswer(x.topic, x.concept, x.correct, 'post'));
-      S.quiz = null; finish(); return;
-    }
-    S.quiz = null; S.phase = 'play'; save(); render();
+    if (Q.kind === 'post') result.items.forEach((x) => U.recordAnswer(x.topic, x.concept, x.correct, 'post'));
+    S.quiz = null; S.phase = 'quizResult'; S.quizResult = Q.kind; save(); quizResults();
   }
 
   function play() {
@@ -353,6 +412,7 @@
   function render() {
     if (!S) return intro();
     if (S.phase === 'quiz') return quizScreen();
+    if (S.phase === 'quizResult' && S.quizResult && S[S.quizResult]) return quizResults();
     if (S.phase === 'outcome' && S.lastOutcome) return outcome();
     return play();
   }

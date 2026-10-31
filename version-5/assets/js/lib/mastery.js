@@ -29,7 +29,7 @@
       const correct = answers[i] === item.a[item.correct];
       byTopic[o.topic].total++;
       if (correct) byTopic[o.topic].correct++;
-      return { slot: item.slot, topic: o.topic, concept: o.concept, correct };
+      return { slot: item.slot, topic: o.topic, concept: o.concept, correct, chosen: answers[i] ?? null };
     });
     const score = items.filter((x) => x.correct).length;
     return { form: formId, score, total: items.length, byTopic, items };

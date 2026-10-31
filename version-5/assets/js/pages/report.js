@@ -123,6 +123,21 @@
       </div>
     </section>
 
+    ${(r.review || []).length ? `<section class="card" aria-labelledby="rev-h">
+      <h3 id="rev-h">${icon('notebook', 20)} Knowledge check answers, explained</h3>
+      <p class="small muted">Every question from your knowledge checks, with the right answer and why.</p>
+      ${r.review.map((rv) => `<details class="more" style="margin-top:10px"${rv.phase === 'post' ? ' open' : ''}><summary>${rv.phase === 'pre' ? 'Starting check' : 'Final check'} · ${rv.items.filter((x) => x.correct).length} of ${rv.items.length} correct</summary>
+        <ol class="review-list">${rv.items.map((it) => {
+          const q = (C.Assessments.forms[rv.form] || []).find((x) => x.slot === it.slot);
+          if (!q) return '';
+          return `<li class="${it.correct ? 'ok' : 'no'}"><span class="tag">${esc(topicLabel(it.topic))}</span>
+            <p class="rq"><b>${esc(q.q)}</b></p>
+            ${it.correct ? `<p class="small">${icon('check', 14)} You answered: ${esc(q.a[q.correct])}</p>`
+              : `<p class="small">${icon('x', 14)} You answered: ${esc(it.chosen || '—')}<br>${icon('check', 14)} Correct: <b>${esc(q.a[q.correct])}</b></p>`}
+            <p class="small muted" style="margin:0">${esc(q.why)}</p></li>`;
+        }).join('')}</ol></details>`).join('')}
+    </section>` : ''}
+
     <section id="recs" aria-labelledby="recs-h">
       <p class="eyebrow">Keep learning</p>
       <h2 id="recs-h">Recommended for you</h2>

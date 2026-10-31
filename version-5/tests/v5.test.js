@@ -178,3 +178,23 @@
     assert.approx(((160 + 120 + 200 + 80) / 4) * 26 / 12, 300, 5);
   });
 })();
+
+/* Knowledge check: answers are kept so the report can explain every question. */
+(function () {
+  const { test, assert } = globalThis.CentsibleTest;
+  const C = globalThis.Centsible;
+  test('scored knowledge-check items remember the chosen answer', () => {
+    const form = C.Assessments.forms.A;
+    const answers = form.map((q) => q.a[(q.correct + 1) % q.a.length]);
+    const r = C.Mastery.scoreAssessment('A', answers);
+    r.items.forEach((it, i) => assert.equal(it.chosen, answers[i]));
+  });
+  test('the report includes an answer review for both checks', () => {
+    const r = C.ReportBuilder.sample();
+    assert.deepEqual(r.review.map((x) => x.phase), ['pre', 'post']);
+    r.review.forEach((rv) => {
+      assert.equal(rv.items.length, C.Assessments.forms[rv.form].length);
+      rv.items.forEach((it) => assert.ok(C.Assessments.forms[rv.form].some((q) => q.slot === it.slot && q.a.includes(it.chosen)), 'chosen answer is one of the options'));
+    });
+  });
+})();
